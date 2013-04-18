@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<interface xmlns="http://zero-install.sourceforge.net/2004/injector/interface">
+  <name>test</name>
+  <summary>testing</summary>
+
+  <feed-for interface="http://example.com/myrepo/tests/test.xml"/>
+
+  <group>
+    <command name="run" path="test.py">
+      <runner interface="http://repo.roscidus.com/python/python">
+	<version not-before="3"/>
+      </runner>
+    </command>
+
+    <implementation id="sha1new=4f860b217bb94723ad6af9062d25dc7faee6a7ae" version="1">
+      <manifest-digest sha256new="GT7DMOHJ5UPT6H4R5EP3YKSW7M6DIR6CWEIOH3EH5KSSSS57AA6A"/>
+      <archive extract="test-1" href="http://example.com/downloads/test-1.tar.bz2" size="419419"/>
+    </implementation>
+  </group>
+</interface>
