@@ -17,7 +17,7 @@ from repo import paths
 PublicFeed = namedtuple("PublicFeed", ["public_rel_path", "doc", "changed"])
 
 feed_header = """<?xml version="1.0" ?>
-<?xml-stylesheet type='text/xsl' href='interface.xsl'?>
+<?xml-stylesheet type='text/xsl' href='%s/feed.xsl'?>
 """
 
 def sign_xml(config, source_xml):
@@ -81,7 +81,9 @@ def build_public_feeds(config):
 
 	for target_path, new_doc, changed in feeds:
 		if not changed: continue
-		new_xml = feed_header + new_doc.documentElement.toxml('utf-8')
+
+		path_to_resources = relpath(join('public', 'resources'), dirname(target_path))
+		new_xml = (feed_header % path_to_resources) + new_doc.documentElement.toxml('utf-8')
 
 		signed_xml = sign_xml(config, new_xml)
 

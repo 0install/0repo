@@ -59,8 +59,8 @@ class Test0Repo(unittest.TestCase):
 		out = run_repo([])
 		assert 'No .xml files in "incoming" directory (nothing to process)' in out, out
 		assert os.path.exists(join('public', 'catalog.xml'))
-		assert os.path.exists(join('public', 'catalog.xsl'))
-		assert os.path.exists(join('public', 'catalog.css'))
+		assert os.path.exists(join('public', 'resources/catalog.xsl'))
+		assert os.path.exists(join('public', 'resources/catalog.css'))
 
 		# Create a new feed (external archive)
 		shutil.copyfile(join(mydir, 'test-1.xml'), join('incoming', 'test-1.xml'))

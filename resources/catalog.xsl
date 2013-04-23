@@ -16,7 +16,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta http-equiv="Content-Language" content="en" />
 <title>Software in this repository</title>
-<link rel="stylesheet" href="catalog.css" type="text/css" />
+<link rel="stylesheet" href="resources/catalog.css" type="text/css" />
 </head>
 
 <body>

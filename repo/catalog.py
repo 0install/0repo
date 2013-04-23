@@ -15,20 +15,12 @@ from . import namespace
 XMLNS_CATALOG = "http://0install.de/schema/injector/catalog"
 
 catalog_header = '''<?xml version="1.0" encoding="utf-8"?>
-<?xml-stylesheet type='text/xsl' href='catalog.xsl'?>
+<?xml-stylesheet type='text/xsl' href='resources/catalog.xsl'?>
 '''
 
 catalog_names = frozenset(["name", "summary", "description", "homepage", "icon", "category", "entry-point"])
 
 def write_catalog(config, feeds):
-	catalog_stylesheet = join('public', 'catalog.xsl')
-	if not os.path.exists(catalog_stylesheet):
-		shutil.copyfile(join(config.default_resources, 'catalog.xsl'), catalog_stylesheet)
-
-	catalog_css = join('public', 'catalog.css')
-	if not os.path.exists(catalog_css):
-		shutil.copyfile(join(config.default_resources, 'catalog.css'), catalog_css)
-
 	cat_ns = namespace.Namespace()
 	cat_ns.register_namespace(XMLNS_CATALOG, "c")
 
