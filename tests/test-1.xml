@@ -1,7 +1,11 @@
 <?xml version="1.0"?>
-<interface xmlns="http://zero-install.sourceforge.net/2004/injector/interface">
+<interface xmlns="http://zero-install.sourceforge.net/2004/injector/interface"
+  	   xmlns:myns="http://example.com/ns1">
   <name>test</name>
   <summary>testing</summary>
+  <description>Test-case for 0repo.</description>
+
+  <homepage myns:x='y'>http://example.com</homepage>
 
   <feed-for interface="http://example.com/myrepo/tests/test.xml"/>
 

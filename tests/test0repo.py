@@ -7,6 +7,9 @@ from StringIO import StringIO
 
 from os.path import join
 
+from zeroinstall.injector import qdom
+from zeroinstall.injector.namespaces import XMLNS_IFACE
+
 os.environ["http_proxy"] = "http://localhost:9999/bug"
 mydir = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.abspath('..'))
@@ -67,6 +70,14 @@ class Test0Repo(unittest.TestCase):
 		assert os.path.exists(join('feeds', 'tests', 'test.xml'))
 
 		assert os.path.exists(join('public', 'tests', 'test.xml'))
+
+		with open(join('public', 'catalog.xml')) as stream:
+			catalog = qdom.parse(stream)
+		feeds = catalog.childNodes
+		self.assertEqual(1, len(feeds))
+		feed, = feeds
+		self.assertEqual(XMLNS_IFACE, feed.uri)
+		self.assertEqual("http://example.com/myrepo/tests/test.xml", feed.attrs['uri'])
 	
 if __name__ == '__main__':
 	unittest.main()

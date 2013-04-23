@@ -7,11 +7,14 @@ import os, subprocess, sys
 from os.path import join, dirname, relpath
 from xml.dom import minidom
 import base64
+from collections import namedtuple
 
 from zeroinstall.support import xmltools
 from zeroinstall import SafeException
 
 from repo import paths
+
+PublicFeed = namedtuple("PublicFeed", ["public_rel_path", "doc", "changed"])
 
 feed_header = """<?xml version="1.0" ?>
 <?xml-stylesheet type='text/xsl' href='interface.xsl'?>
@@ -67,17 +70,19 @@ def build_public_feeds(config):
 				source_path = join(dirpath, f)
 				target_path = join("public", paths.get_public_rel_path(config, relpath(source_path, 'feeds')))
 				new_doc = generate_public_xml(config, source_path)
+				changed = True
 				if os.path.exists(target_path):
 					with open(target_path, 'rb') as stream:
 						old_doc = minidom.parse(stream)
 					if xmltools.nodes_equal(old_doc.documentElement, new_doc.documentElement):
 						print("%s unchanged" % source_path)
-						continue
-				feeds.append((target_path, new_doc))
-	
-	for target_path, new_doc in feeds:
+						changed = False
+				feeds.append(PublicFeed(target_path, new_doc, changed))
+
+	for target_path, new_doc, changed in feeds:
+		if not changed: continue
 		new_xml = feed_header + new_doc.documentElement.toxml('utf-8')
-		
+
 		signed_xml = sign_xml(config, new_xml)
 
 		target_dir = dirname(target_path)
@@ -88,3 +93,5 @@ def build_public_feeds(config):
 			stream.write(signed_xml)
 		os.rename(target_path + '.new', target_path)
 		print("Updated", target_path)
+
+	return feeds
