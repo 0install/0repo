@@ -34,7 +34,7 @@ def sign_xml(config, source_xml):
 		print(stderr, file=sys.stderr)
 
 	encoded = base64.encodestring(stdout)
-	sig = "\n<!-- Base64 Signature\n" + encoded + "\n-->\n"
+	sig = "<!-- Base64 Signature\n" + encoded + "\n-->\n"
 	return source_xml + sig
 
 def expand_impl_relative_urls(config, parent):
@@ -109,7 +109,7 @@ def build_public_feeds(config):
 		if not changed: continue
 
 		path_to_resources = relpath(join('public', 'resources'), dirname(target_path))
-		new_xml = (feed_header % path_to_resources) + new_doc.documentElement.toxml('utf-8')
+		new_xml = (feed_header % path_to_resources).encode('utf-8') + new_doc.documentElement.toxml('utf-8') + '\n'
 
 		signed_xml = sign_xml(config, new_xml)
 

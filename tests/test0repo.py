@@ -7,7 +7,7 @@ from StringIO import StringIO
 
 from os.path import join
 
-from zeroinstall.injector import qdom, model
+from zeroinstall.injector import qdom, model, gpg
 from zeroinstall.injector.namespaces import XMLNS_IFACE
 
 os.environ["http_proxy"] = "http://localhost:9999/bug"
@@ -96,9 +96,14 @@ class Test0Repo(unittest.TestCase):
 		self.assertEqual('http://example.com/myrepo/archives/test-2.tar.bz2', stored_archive.url)
 
 		with open(join('public', 'tests', 'test.xml'), 'rb') as stream:
+			stream, sigs = gpg.check_stream(stream)
+			assert isinstance(sigs[0], gpg.ValidSig), sigs[0]
+
+			stream.seek(0)
+
 			feed = model.ZeroInstallFeed(qdom.parse(stream))
 		impl2 = feed.implementations['sha1new=290eb133e146635fe37713fd58174324a16d595f']
 		self.assertEqual(stored_archive.url, impl2.download_sources[0].url)
-	
+
 if __name__ == '__main__':
 	unittest.main()
