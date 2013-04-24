@@ -9,6 +9,7 @@ import sys
 from os.path import join, dirname, abspath
 
 from zeroinstall import SafeException
+from repo import archives
 
 def main(argv):
 	parser = argparse.ArgumentParser(description='Manage a 0install repository.')
@@ -43,10 +44,12 @@ def main(argv):
 		del sys.path[0]
 
 		config.default_resources = join(dirname(dirname(dirname(abspath(__file__)))), 'resources')
-		for setting in ['REPOSITORY_BASE_URL', 'ARCHIVES_BASE_URL', 'LOCAL_ARCHIVES_DIR']:
+		for setting in ['REPOSITORY_BASE_URL', 'ARCHIVES_BASE_URL', 'LOCAL_ARCHIVES_BACKUP_DIR']:
 			value = getattr(config, setting)
 			if not value.endswith('/'):
 				setattr(config, value + '/')
+
+		config.archive_db = archives.ArchiveDB("archives.db")
 
 		cmd = __import__('repo.cmd.' + args.subcommand, globals(), locals(), [args.subcommand], 0)
 		cmd.handle(config, args)

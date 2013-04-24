@@ -5,10 +5,11 @@ from __future__ import print_function
 
 import os, subprocess, sys
 from os.path import join, dirname, relpath
-from xml.dom import minidom
+from xml.dom import minidom, Node
 import base64
 from collections import namedtuple
 
+from zeroinstall.injector.namespaces import XMLNS_IFACE
 from zeroinstall.support import xmltools
 from zeroinstall import SafeException
 
@@ -36,6 +37,29 @@ def sign_xml(config, source_xml):
 	sig = "\n<!-- Base64 Signature\n" + encoded + "\n-->\n"
 	return source_xml + sig
 
+def expand_impl_relative_urls(config, parent):
+	for elem in parent.childNodes:
+		if elem.nodeType != Node.ELEMENT_NODE: continue
+		if elem.namespaceURI != XMLNS_IFACE: continue
+
+		if elem.localName in ('archive', 'file'):
+			archive = elem.getAttribute('href')
+			assert archive
+			if '/' not in archive:
+				elem.setAttribute('href', config.archive_db.lookup(archive).url)
+		elif elem.localName == 'recipe':
+			expand_impl_relative_urls(config, elem)
+
+def expand_relative_urls(config, parent):
+	for elem in parent.childNodes:
+		if elem.nodeType != Node.ELEMENT_NODE: continue
+		if elem.namespaceURI != XMLNS_IFACE: continue
+
+		if elem.localName == 'group':
+			expand_relative_urls(config, elem)
+		elif elem.localName == 'implementation':
+			expand_impl_relative_urls(config, elem)
+
 def generate_public_xml(config, source_xml_path):
 	"""Load source_xml_path and expand any relative URLs."""
 	with open(source_xml_path, 'rb') as stream:
@@ -59,6 +83,8 @@ def generate_public_xml(config, source_xml_path):
 			path = source_xml_path,
 			uri = declared_iface,
 			expected_path = expected_path))
+
+	expand_relative_urls(config, root)
 
 	return doc
 

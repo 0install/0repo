@@ -3,7 +3,7 @@
 
 from __future__ import print_function
 
-import os, shutil
+import os
 from os.path import join
 from xml.dom.minidom import getDOMImplementation
 from xml.dom import XMLNS_NAMESPACE

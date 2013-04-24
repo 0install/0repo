@@ -5,7 +5,6 @@ from __future__ import print_function
 
 import os
 from os.path import join
-import shutil
 
 from repo import incoming, build, catalog
 

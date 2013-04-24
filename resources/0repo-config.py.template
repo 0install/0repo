@@ -1,30 +1,15 @@
 # The URL of the directory which will host the repository (feeds, keys, stylesheets and catalogue).
 REPOSITORY_BASE_URL = "http://example.com/myrepo/"
 
-# The URL of the directory containing the archives (which will not be under REPOSITORY_BASE_URL if
-# you are hosting archives on a different server). Note that uploaders can choose whether to store
-# archives within 0repo or externally. This setting does not affect external archives, only archives
-# managed by 0repo.
-ARCHIVES_BASE_URL = REPOSITORY_BASE_URL + "/archives/"
-
 # The GPG secret key which 0repo should use to sign the generated feeds and any
 # Git commits it makes. The fingerprint preceeded by "0x" is the most precise
 # way to identity a key (see "HOW TO SPECIFY A USER ID" in the gpg(1) man-page
 # for other options).
-GPG_SIGNING_KEY = "0xDA9825AECAD089757CDABD8E07133F96CA74D8BA"
-
-# The local directory in which to store accepted archives.
-# This corresponds to ARCHIVES_BASE_URL.
-LOCAL_ARCHIVES_DIR = "public/archives/"
+GPG_SIGNING_KEY = "0x2E32123D8BE241A3B6D91E0301685F11607BB2C5"
 
 # Command to sync the public directory to the web hosting.
 # If None, you must sync manually after running 0repo.
 SYNC_PUBLIC_COMMAND = None
-
-# Command to upload archives to your archive hosting.
-# If the archives are under "public" (the default) then this should be set to None,
-# since SYNC_PUBLIC_COMMAND will upload the archives along with the feeds.
-UPLOAD_ARCHIVES_COMMAND = None
 
 # If set, XML feeds in the "incoming" directory and any Git pull requests must be signed by one of
 # these keys, otherwise they will be rejected. For local use, this can be set to None so that the
@@ -37,6 +22,51 @@ CONTRIBUTOR_GPG_KEYS = None
 REQUIRE_LICENSE = True
 #REQUIRE_LICENSE = {"OSI Approved :: GNU Lesser General Public License (LGPL)"}
 
+
+#### Archive hosting ####
+
+from repo import paths
+import subprocess
+from os.path import join
+
+# The URL of the directory containing the archives (which will not be under REPOSITORY_BASE_URL if
+# you are hosting archives on a different server). Note that uploaders can choose whether to store
+# archives within 0repo or externally. This setting does not affect external archives, only archives
+# managed by 0repo.
+ARCHIVES_BASE_URL = REPOSITORY_BASE_URL + "archives/"
+
+# Where to keep backups of the archives after uploading them.
+# If None, they will be deleted after upload.
+LOCAL_ARCHIVES_BACKUP_DIR = "archives/"
+
+# At what URL under ARCHIVES_BASE_URL should this file/archive be served?
+# Note that there may be multiple archives/files for a single version, so you probably want to
+# keep archive_basename in the final URL.
+def get_archive_rel_url(archive_basename, impl):
+	# Example 1 (default)		e.g. http://.../myprog-1.0.tar.bz2
+	return archive_basename
+
+	# Example 2 (SourceForge)	e.g. http://.../myprog/1.0/myprog-1.0.tar.bz2
+	return "{program}/{version}/{archive}".format(
+		program = impl.feed.get_name().replace(' ', '-'),
+		version = impl.get_version(),
+		archive = archive_basename)
+
+# Upload these archives (from the incoming directory) to the file server.
+# For each archive in the list:
+#   archive.source_path = path to local archive to be uploaded
+#   archive.rel_url = result from get_archive_rel_url() above
+# If any target files already exist, overwrite them (we will retry if uploading
+# fails part way through).
+# If this function returns without an error, the original copies will be moved
+# under LOCAL_ARCHIVES_BACKUP_DIR (or deleted if that's not set).
+def upload_archives(archives):
+	for dir_rel_url, files in paths.group_by_target_url_dir(archives):
+		# Example 1 : simple copy to local web-server directory
+		#archives_local_dir = "/home/me/public_html/archives/"
+		#subprocess.check_call(["cp"] + files + [join(archives_local_dir, dir_rel_url)])
+
+		raise Exception("No upload method specified: edit upload_archives() in 0repo-config.py")
 
 #### Advanced configuration ####
 

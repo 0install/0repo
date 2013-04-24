@@ -9,9 +9,11 @@ from os.path import join, dirname, basename, relpath
 from zeroinstall.injector import qdom, model
 from zeroinstall import SafeException
 
-from repo import paths
+from repo import paths, archives
 
 def process(config, xml_file):
+	# Step 1 : check everything looks sensible, reject if not
+
 	with open(xml_file, 'rb') as stream:
 		xml_text = stream.read()
 		stream.seek(0)
@@ -31,6 +33,12 @@ def process(config, xml_file):
 	feed_dir = dirname(feed_path)
 	if not os.path.isdir(feed_dir):
 		os.makedirs(feed_dir)
+
+	# Step 2 : upload archives to hosting
+
+	processed_archives = archives.process_archives(config, feed)
+
+	# Step 3 : merge XML into feeds directory
 
 	new_file = not os.path.exists(feed_path)
 	git_path = relpath(feed_path, 'feeds')
@@ -58,9 +66,15 @@ def process(config, xml_file):
 				subprocess.check_call(['git', 'rm', '--', git_path], cwd = 'feeds')
 		else:
 			subprocess.check_call(['git', 'checkout', 'HEAD', '--', git_path], cwd = 'feeds')
-	else:
-		# Delete XML from incoming directory
-		os.unlink(xml_file)
+		raise
+
+	# Delete XML from incoming directory
+	os.unlink(xml_file)
+
+	# Remove archives from incoming directory. Do this last, because it's
+	# easy to re-upload the archives without causing problems, but we can't
+	# reprocess once the archives have gone.
+	archives.finish_archives(config, processed_archives)
 
 def process_incoming_dir(config):
 	"""Current directory contains 'incoming'."""
