@@ -75,6 +75,17 @@ These are optional:
 - GPG keys of trusted contributors
 
 
+Importing pre-existing feeds
+----------------------------
+
+If you've been managing a set of feeds without 0repo, you can import them into it using the `add` command:
+
+    0repo add .../old-repo/*.xml
+
+The feeds must be signed. They will be added to the `feeds` directory, without the signatures (which will however
+appear in the Git commit message).
+
+
 Adding a release
 ----------------
 

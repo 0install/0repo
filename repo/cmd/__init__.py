@@ -21,6 +21,10 @@ def main(argv):
 
 	subparsers.add_parser('update', help='process "incoming" and generate output files')
 
+	parser_import = subparsers.add_parser('add', help='import pre-existing feeds into 0repo')
+	parser_import.add_argument('path', metavar='PATH', nargs='+',
+			   help='the signed feeds to import')
+
 	if len(argv) == 1:
 		argv = argv + ['update']
 

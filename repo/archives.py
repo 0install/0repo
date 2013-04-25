@@ -83,7 +83,7 @@ def process_method(config, impl, method):
 			new_sha1 = get_sha1(join('incoming', archive))
 			if new_sha1 != existing.sha1:
 				raise SafeException("A different archive with basename '{name}' is "
-						    "already in the repository: {archive}".format(name = archive, archive = exiting))
+						    "already in the repository: {archive}".format(name = archive, archive = existing))
 			step.url = existing.url
 		else:
 			archive_rel_url = paths.get_archive_rel_url(config, archive, impl)

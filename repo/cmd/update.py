@@ -10,7 +10,9 @@ from repo import incoming, build, catalog
 
 def handle(config, args):
 	incoming.process_incoming_dir(config)
-	
+	do_update(config)
+
+def do_update(config):
 	feeds = build.build_public_feeds(config)
 
 	catalog.write_catalog(config, feeds)

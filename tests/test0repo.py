@@ -19,6 +19,8 @@ test_gpghome = join(mydir, 'test-gpghome')
 from repo.cmd import main
 from repo import archives
 
+gpg.ValidSig.is_trusted = lambda self, domain = None: True
+
 def run_repo(args):
 	old_stdout = sys.stdout
 	sys.stdout = StringIO()
@@ -107,6 +109,10 @@ class Test0Repo(unittest.TestCase):
 			feed = model.ZeroInstallFeed(qdom.parse(stream))
 		impl2 = feed.implementations['sha1new=290eb133e146635fe37713fd58174324a16d595f']
 		self.assertEqual(stored_archive.url, impl2.download_sources[0].url)
+
+		# Import pre-existing feed
+		out = run_repo(['add', join(mydir, 'imported.xml')])
+		assert os.path.exists(join('public', 'tests', 'imported.xml'))
 
 if __name__ == '__main__':
 	unittest.main()

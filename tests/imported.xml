@@ -1,0 +1,18 @@
+<?xml version="1.0" ?>
+<?xml-stylesheet type='text/xsl' href='interface.xsl'?>
+<interface uri="http://example.com/myrepo/tests/imported.xml" xmlns="http://zero-install.sourceforge.net/2004/injector/interface">
+  <name>pre-existing</name>
+  <summary>imported from pre-existing repository</summary>
+
+  <group>
+    <implementation id="sha1new=123" version="1">
+      <archive href="http://example.com/imported-1.tar.bz2" size="200"/>
+    </implementation>
+  </group>
+</interface>
+<!-- Base64 Signature
+iJwEAAECAAYFAlF5UbQACgkQbWa99PRnoY10fQQAjw1GaBAOlmtbw7ZxQc96CfOGb5jIdLTUzCkv
+cyBLX6lL/HkQfXrKgFZDJPj6F0wefIRvm4OUe8HEk2X3096X7Sy2wV6o0TGpDHoGVW+a2RIQD9T7
+afJrl9ADXq6NQWgIT8CJf8V72df9WgIOXarof1qPbTXiYQJf6gjpyJd2Mzo=
+
+-->

@@ -4,9 +4,10 @@
 from __future__ import print_function
 
 import os, subprocess
+from io import BytesIO
 from os.path import join, dirname, basename, relpath
 
-from zeroinstall.injector import qdom, model
+from zeroinstall.injector import qdom, model, gpg, trust
 from zeroinstall.injector.namespaces import XMLNS_IFACE
 from zeroinstall import SafeException
 
@@ -24,25 +25,44 @@ def ensure_no_uncommitted_changes(path):
 			    '"git stash" to discard.\n\n'
 			    'Changes are:\n{changes}'.format(feed = path, changes = stdout))
 
-def process(config, xml_file):
+def process(config, xml_file, import_master = False):
 	# Step 1 : check everything looks sensible, reject if not
 
 	with open(xml_file, 'rb') as stream:
 		xml_text = stream.read()
-		stream.seek(0)
-		root = qdom.parse(stream)
+		sig_index = xml_text.rfind('\n<!-- Base64 Signature')
+		if sig_index != -1:
+			stream.seek(0)
+			stream, sigs = gpg.check_stream(stream)
+		else:
+			sigs = []
+		root = qdom.parse(BytesIO(xml_text))
 
-	for child in root.childNodes:
-		if child.name == 'feed-for' and child.uri == XMLNS_IFACE:
-			# TODO: This actually gives us the interface. We currently assume we're adding to the
-			# default feed for the interface, which is wrong. If there is a 'feed' attribute on the
-			# <feed-for>, we should use that instead. This will also require updating 0publish.
-			master = child.attrs['interface']
-			break
+	if import_master:
+		master = root.attrs['uri']
 	else:
-		raise SafeException("Missing <feed-for> in " + basename(xml_file))
+		for child in root.childNodes:
+			if child.name == 'feed-for' and child.uri == XMLNS_IFACE:
+				# TODO: This actually gives us the interface. We currently assume we're adding to the
+				# default feed for the interface, which is wrong. If there is a 'feed' attribute on the
+				# <feed-for>, we should use that instead. This will also require updating 0publish.
+				master = child.attrs['interface']
+				break
+		else:
+			raise SafeException("Missing <feed-for> in " + basename(xml_file))
 
-	root.attrs['uri'] = master	# (hack so we can parse it here without setting local_path)
+		root.attrs['uri'] = master	# (hack so we can parse it here without setting local_path)
+
+	# Check signatures are valid
+	if sigs or import_master:
+		for sig in sigs:
+			if sig.is_trusted(trust.domain_from_url(master)):
+				break
+		else:
+			raise SafeException("No trusted signatures on feed {path}; signatures were {sigs}".format(
+				path = xml_file,
+				sigs = sigs))
+
 	feed = model.ZeroInstallFeed(root)
 
 	feeds_rel_path = paths.get_feeds_rel_path(config, master)
@@ -51,11 +71,20 @@ def process(config, xml_file):
 	if not os.path.isdir(feed_dir):
 		os.makedirs(feed_dir)
 
-	ensure_no_uncommitted_changes(feed_path)
+	if import_master:
+		if os.path.exists(feed_path):
+			raise SafeException("Can't import '{url}'; feed {path} already exists".format(
+				url = feed.url,
+				path = feed_path))
+	else:
+		ensure_no_uncommitted_changes(feed_path)
 
 	# Step 2 : upload archives to hosting
 
-	processed_archives = archives.process_archives(config, feed)
+	if import_master:
+		processed_archives = []
+	else:
+		processed_archives = archives.process_archives(config, feed)
 
 	# Step 3 : merge XML into feeds directory
 
@@ -64,8 +93,14 @@ def process(config, xml_file):
 	did_git_add = False
 
 	try:
-		# Merge into feed
-		subprocess.check_call([os.environ['ZEROPUBLISH'], "--add-from", xml_file, feed_path])
+		if import_master:
+			assert new_file
+			with open(feed_path + '.new', 'wb') as stream:
+				stream.write(xml_text[:sig_index])
+			os.rename(feed_path + '.new', feed_path)
+		else:
+			# Merge into feed
+			subprocess.check_call([os.environ['ZEROPUBLISH'], "--add-from", xml_file, feed_path])
 
 		# Commit
 		if new_file:
@@ -73,7 +108,8 @@ def process(config, xml_file):
 			did_git_add = True
 
 		# (this must be last in the try block)
-		commit_msg = 'Merged %s\n\n%s' % (basename(xml_file), xml_text.encode('utf-8'))
+		action = 'Imported' if import_master else 'Merged'
+		commit_msg = '%s %s\n\n%s' % (action, basename(xml_file), xml_text.encode('utf-8'))
 		subprocess.check_call(['git', 'commit', '-q', '-m', commit_msg, '-S' + config.GPG_SIGNING_KEY, '--', git_path], cwd = 'feeds')
 	except Exception as ex:
 		# Roll-back (we didn't commit to Git yet)
@@ -88,7 +124,8 @@ def process(config, xml_file):
 		raise
 
 	# Delete XML from incoming directory
-	os.unlink(xml_file)
+	if not import_master:
+		os.unlink(xml_file)
 
 	# Remove archives from incoming directory. Do this last, because it's
 	# easy to re-upload the archives without causing problems, but we can't
