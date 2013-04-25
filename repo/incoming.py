@@ -7,6 +7,7 @@ import os, subprocess
 from os.path import join, dirname, basename, relpath
 
 from zeroinstall.injector import qdom, model
+from zeroinstall.injector.namespaces import XMLNS_IFACE
 from zeroinstall import SafeException
 
 from repo import paths, archives
@@ -29,16 +30,20 @@ def process(config, xml_file):
 	with open(xml_file, 'rb') as stream:
 		xml_text = stream.read()
 		stream.seek(0)
-		feed = model.ZeroInstallFeed(qdom.parse(stream), local_path = xml_file)
-	if not feed.feed_for:
-		raise SafeException("Missing <feed-for> in " + basename(xml_file))
-	if len(feed.feed_for) != 1:
-		raise SafeException("Multiple <feed-for>s in " + basename(xml_file))
+		root = qdom.parse(stream)
 
-	# TODO: This actually gives us the interface. We currently assume we're adding to the
-	# default feed for the intrface, which is wrong. If there is a 'feed' attribute on the
-	# <feed-for>, we should use that instead. This will also require updating 0publish.
-	master, = feed.feed_for
+	for child in root.childNodes:
+		if child.name == 'feed-for' and child.uri == XMLNS_IFACE:
+			# TODO: This actually gives us the interface. We currently assume we're adding to the
+			# default feed for the interface, which is wrong. If there is a 'feed' attribute on the
+			# <feed-for>, we should use that instead. This will also require updating 0publish.
+			master = child.attrs['interface']
+			break
+	else:
+		raise SafeException("Missing <feed-for> in " + basename(xml_file))
+
+	root.attrs['uri'] = master	# (hack so we can parse it here without setting local_path)
+	feed = model.ZeroInstallFeed(root)
 
 	feeds_rel_path = paths.get_feeds_rel_path(config, master)
 	feed_path = join("feeds", feeds_rel_path)
