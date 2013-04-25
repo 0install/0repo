@@ -11,6 +11,18 @@ from zeroinstall import SafeException
 
 from repo import paths, archives
 
+def ensure_no_uncommitted_changes(path):
+	child = subprocess.Popen(["git", "diff", "--exit-code"], cwd = dirname(path), stdout = subprocess.PIPE, stderr = subprocess.STDOUT)
+	stdout, unused = child.communicate()
+	if child.returncode == 0:
+		return
+
+	raise SafeException('Uncommitted changes in {feed}!\n'
+			    'In the feeds directory, use:\n\n'
+			    '"git commit -a" to commit them, or\n'
+			    '"git stash" to discard.\n\n'
+			    'Changes are:\n{changes}'.format(feed = path, changes = stdout))
+
 def process(config, xml_file):
 	# Step 1 : check everything looks sensible, reject if not
 
@@ -33,6 +45,8 @@ def process(config, xml_file):
 	feed_dir = dirname(feed_path)
 	if not os.path.isdir(feed_dir):
 		os.makedirs(feed_dir)
+
+	ensure_no_uncommitted_changes(feed_path)
 
 	# Step 2 : upload archives to hosting
 
