@@ -68,7 +68,11 @@ def upload_archives(archives):
 
 		raise Exception("No upload method specified: edit upload_archives() in 0repo-config.py")
 
-#### Advanced configuration ####
+#### Repository Layout (advanced) ####
+
+# If you're creating a new repository, you should just use the defaults here.
+# If you're switching an existing repository over to 0repo, these settings
+# allow you to keep your existing naming scheme.
 
 # uri_rel_path is the part of the feed's URL following REPOSITORY_BASE_URL.
 # Where should it be placed within "feeds"? By default, these are the same.
@@ -88,3 +92,18 @@ def get_feeds_rel_path(uri_rel_path):
 # "http://example.com/games/my-game".
 def get_public_rel_path(feeds_rel_path):
 	return feeds_rel_path
+
+# When 0install fetches a feed http://.../prog.xml, it looks for the GPG key
+# at http://.../KEY.gpg.
+#
+# Normally, 0repo should place a symlink to the key in the same directory as
+# the feed file (from get_public_rel_path); use "." for that.
+#
+# If you have one feed per directory (e.g. .../prog/feed.xml with some Apache
+# configuration to make them appear as http://.../prog) then 0repo needs to
+# place the key in the parent directory ("..") instead.
+#
+# Finally, if you use mod_rewrite so that all key requests are routed to the
+# right place automatically by Apache, you can set this to None and avoid
+# generating any symlinks.
+GPG_PUBLIC_KEY_DIRECTORY = "."

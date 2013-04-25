@@ -73,6 +73,9 @@ class Test0Repo(unittest.TestCase):
 		assert os.path.exists(join('feeds', 'tests', 'test.xml'))
 
 		assert os.path.exists(join('public', 'tests', 'test.xml'))
+		with open(join('public', 'tests', '6D66BDF4F467A18D.gpg')) as stream:
+			data = stream.read()
+			assert 'BEGIN PGP PUBLIC KEY BLOCK' in data, data
 
 		with open(join('public', 'catalog.xml')) as stream:
 			catalog = qdom.parse(stream)

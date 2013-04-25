@@ -4,7 +4,7 @@
 from __future__ import print_function
 
 import os, subprocess, sys
-from os.path import join, dirname, relpath
+from os.path import join, dirname, relpath, basename
 from xml.dom import minidom, Node
 import base64
 from collections import namedtuple
@@ -88,6 +88,29 @@ def generate_public_xml(config, source_xml_path):
 
 	return doc
 
+def export_key(dir, signing_key):
+	assert signing_key is not None
+
+	paths.ensure_dir(dir)
+
+	# Convert signing_key to key ID
+	keyID = None
+	keys_output = subprocess.check_output(['gpg', '--with-colons', '--list-keys', signing_key])
+	for line in keys_output.split('\n'):
+		parts = line.split(':')
+		if parts[0] == 'pub':
+			if keyID:
+				raise Exception('Two key IDs returned from GPG!')
+			keyID = parts[4]
+	assert keyID, "Can't find GPG key '%s'" % signing_key
+
+	key_file = os.path.join(dir, keyID + '.gpg')
+	if not os.path.isfile(key_file):
+		with open(key_file, 'w') as key_stream:
+			subprocess.check_call(["gpg", "-a", "--export", signing_key], stdout = key_stream)
+		print("Exported public key as '%s'" % key_file)
+	return key_file
+
 def build_public_feeds(config):
 	feeds = []
 	for dirpath, dirnames, filenames in os.walk('feeds'):
@@ -105,17 +128,24 @@ def build_public_feeds(config):
 						changed = False
 				feeds.append(PublicFeed(target_path, new_doc, changed))
 
+	key_path = export_key('keys', config.GPG_SIGNING_KEY)
+
 	for target_path, new_doc, changed in feeds:
+		target_dir = dirname(target_path)
+		if not os.path.isdir(target_dir):
+			os.makedirs(target_dir)
+
+		if config.GPG_PUBLIC_KEY_DIRECTORY:
+			key_symlink_path = join(target_dir, config.GPG_PUBLIC_KEY_DIRECTORY, basename(key_path))
+			if not os.path.islink(key_symlink_path):
+				os.symlink(relpath(key_path, dirname(key_symlink_path)), key_symlink_path)
+
 		if not changed: continue
 
 		path_to_resources = relpath(join('public', 'resources'), dirname(target_path))
 		new_xml = (feed_header % path_to_resources).encode('utf-8') + new_doc.documentElement.toxml('utf-8') + '\n'
 
 		signed_xml = sign_xml(config, new_xml)
-
-		target_dir = dirname(target_path)
-		if not os.path.isdir(target_dir):
-			os.makedirs(target_dir)
 
 		with open(target_path + '.new', 'wb') as stream:
 			stream.write(signed_xml)
