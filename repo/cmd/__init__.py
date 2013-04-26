@@ -33,31 +33,35 @@ def main(argv):
 		argv = argv + ['update']
 
 	args = parser.parse_args(argv[1:])
+	cmd = __import__('repo.cmd.' + args.subcommand, globals(), locals(), [args.subcommand], 0)
+	cmd.handle(args)
 
-	if args.subcommand == 'create':
-		from repo.cmd import create
-		create.handle(args)
-	else:
-		# Walk up the directory tree to find the root of the repository
-		while not os.path.isfile('0repo-config.py'):
-			if os.path.samefile('.', '..'):
-				raise SafeException('0repo must be run from a repository directory (a directory that contains\n'
-						    'a "0repo-config.py" file). To create a new repository, use:\n\n'
-						    '0repo create DIR')
-			os.chdir('..')
+def find_config(missing_ok = False):
+	"""Change to parent directory until we find one with 0repo-config.py."""
 
-		import importlib
-		sys.path.insert(0, '.')
-		config = importlib.import_module('0repo-config')
-		del sys.path[0]
+	# Walk up the directory tree to find the root of the repository
+	while not os.path.isfile('0repo-config.py'):
+		if os.path.samefile('.', '..'):
+			if missing_ok:
+				return False
+			raise SafeException('0repo must be run from a repository directory (a directory that contains\n'
+					    'a "0repo-config.py" file). To create a new repository, use "0repo create"')
+		os.chdir('..')
+	return True
 
-		config.default_resources = join(dirname(dirname(dirname(abspath(__file__)))), 'resources')
-		for setting in ['REPOSITORY_BASE_URL', 'ARCHIVES_BASE_URL', 'LOCAL_ARCHIVES_BACKUP_DIR']:
-			value = getattr(config, setting)
-			if not value.endswith('/'):
-				setattr(config, setting, value + '/')
+def load_config():
+	"""Load 0repo-config.py from the current directory."""
+	import importlib
+	sys.path.insert(0, abspath('.'))
+	config = importlib.import_module('0repo-config')
+	del sys.path[0]
 
-		config.archive_db = archives.ArchiveDB("archives.db")
+	config.default_resources = join(dirname(dirname(dirname(abspath(__file__)))), 'resources')
+	for setting in ['REPOSITORY_BASE_URL', 'ARCHIVES_BASE_URL', 'LOCAL_ARCHIVES_BACKUP_DIR']:
+		value = getattr(config, setting)
+		if not value.endswith('/'):
+			setattr(config, setting, value + '/')
 
-		cmd = __import__('repo.cmd.' + args.subcommand, globals(), locals(), [args.subcommand], 0)
-		cmd.handle(config, args)
+	config.archive_db = archives.ArchiveDB("archives.db")
+
+	return config

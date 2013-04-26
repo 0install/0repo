@@ -8,8 +8,12 @@ from os.path import join
 import json
 
 from zeroinstall.support import basedir
+from repo import cmd
 
-def handle(config, args):
+def handle(args):
+	cmd.find_config()
+	config = cmd.load_config()
+
 	path = join(basedir.save_config_path('0install.net', '0repo'), 'repositories.json')
 	if os.path.exists(path):
 		with open(path, 'rb') as stream:

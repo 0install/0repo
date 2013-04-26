@@ -24,12 +24,15 @@ from repo import archives
 gpg.ValidSig.is_trusted = lambda self, domain = None: True
 
 def run_repo(args):
+	oldcwd = os.getcwd()
+
 	old_stdout = sys.stdout
 	sys.stdout = StringIO()
 	try:
 		main(['0repo'] + args)
 		return sys.stdout.getvalue()
 	finally:
+		os.chdir(oldcwd)
 		sys.stdout = old_stdout
 
 class Test0Repo(unittest.TestCase):
@@ -132,11 +135,16 @@ class Test0Repo(unittest.TestCase):
 	def testRegister(self):
 		out = run_repo(['create', 'my-repo', 'Test Key for 0repo'])
 		assert not out
+		os.chdir('my-repo')
 		out = run_repo(['register'])
 		assert 'http://example.com/myrepo/:' in out, out
 
 		out = run_repo(['register'])
 		assert "Already registered" in out, out
+
+		os.chdir(mydir)
+		out = run_repo(['add', 'test-1.xml'])
+		assert "Updated public/tests/test.xml" in out, out
 
 if __name__ == '__main__':
 	unittest.main()

@@ -13,7 +13,22 @@ from zeroinstall import SafeException
 
 from repo import paths, archives, scm
 
-def process(config, xml_file, import_master = False):
+def get_feed_url(root, path):
+	uri = root.attrs.get('uri', None)
+	if uri is not None:
+		return uri
+
+	for child in root.childNodes:
+		if child.name == 'feed-for' and child.uri == XMLNS_IFACE:
+			# TODO: This actually gives us the interface. We currently assume we're adding to the
+			# default feed for the interface, which is wrong. If there is a 'feed' attribute on the
+			# <feed-for>, we should use that instead. This will also require updating 0publish.
+			master = child.attrs['interface']
+			return master
+	else:
+		raise SafeException("Missing <feed-for>/uri in " + path)
+
+def process(config, xml_file, delete_on_success):
 	# Step 1 : check everything looks sensible, reject if not
 
 	with open(xml_file, 'rb') as stream:
@@ -26,19 +41,10 @@ def process(config, xml_file, import_master = False):
 			sigs = []
 		root = qdom.parse(BytesIO(xml_text))
 
-	if import_master:
-		master = root.attrs['uri']
-	else:
-		for child in root.childNodes:
-			if child.name == 'feed-for' and child.uri == XMLNS_IFACE:
-				# TODO: This actually gives us the interface. We currently assume we're adding to the
-				# default feed for the interface, which is wrong. If there is a 'feed' attribute on the
-				# <feed-for>, we should use that instead. This will also require updating 0publish.
-				master = child.attrs['interface']
-				break
-		else:
-			raise SafeException("Missing <feed-for> in " + basename(xml_file))
+	master = get_feed_url(root, xml_file)
+	import_master = 'uri' in root.attrs
 
+	if not import_master:
 		root.attrs['uri'] = master	# (hack so we can parse it here without setting local_path)
 
 	# Check signatures are valid
@@ -69,10 +75,7 @@ def process(config, xml_file, import_master = False):
 
 	# Step 2 : upload archives to hosting
 
-	if import_master:
-		processed_archives = []
-	else:
-		processed_archives = archives.process_archives(config, feed)
+	processed_archives = archives.process_archives(config, incoming_dir = dirname(xml_file), feed = feed)
 
 	# Step 3 : merge XML into feeds directory
 
@@ -112,13 +115,13 @@ def process(config, xml_file, import_master = False):
 		raise
 
 	# Delete XML from incoming directory
-	if not import_master:
+	if delete_on_success:
 		os.unlink(xml_file)
 
 	# Remove archives from incoming directory. Do this last, because it's
 	# easy to re-upload the archives without causing problems, but we can't
 	# reprocess once the archives have gone.
-	archives.finish_archives(config, processed_archives)
+	archives.finish_archives(config, processed_archives, delete_on_success)
 
 def process_incoming_dir(config):
 	"""Current directory contains 'incoming'."""
@@ -131,6 +134,6 @@ def process_incoming_dir(config):
 	if new_xml:
 		for xml in new_xml:
 			print("Processing", xml)
-			process(config, os.path.join('incoming', xml))
+			process(config, os.path.join('incoming', xml), delete_on_success = True)
 	else:
 		print('No .xml files in "incoming" directory (nothing to process)')

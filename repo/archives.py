@@ -32,7 +32,9 @@ class TestScheduler:
 	@tasks.async
 	def download(self, dl, timeout = None):
 		yield
-		with open(join('incoming', basename(dl.url)), 'rb') as stream:
+		assert dl.url.startswith("http://example.com/")
+		path = dl.url[len("http://example.com/"):]
+		with open(path, 'rb') as stream:
 			shutil.copyfileobj(stream, dl.tempfile)
 
 class TestFetcher(fetch.Fetcher):
@@ -50,7 +52,7 @@ def get_sha1(path):
 			sha1.update(got)
 	return sha1.hexdigest()
 
-def process_method(config, impl, method):
+def process_method(config, incoming_dir, impl, method):
 	archives = []
 
 	if not isinstance(method, model.Recipe):
@@ -75,16 +77,16 @@ def process_method(config, impl, method):
 		if ':' in archive:
 			raise SafeException("Archive name {name} contains ':'".format(name = archive))
 
-		if not os.path.isfile(join('incoming', archive)):
-			raise SafeException("Referenced upload '{name}' not found in 'incoming' directory".format(name = archive))
+		archive_path = join(incoming_dir, archive)
+		if not os.path.isfile(archive_path):
+			raise SafeException("Referenced upload '{path}' not found".format(path = archive_path))
 
 		existing = config.archive_db.entries.get(archive, None)
 		if existing is not None:
-			new_sha1 = get_sha1(join('incoming', archive))
+			new_sha1 = get_sha1(archive_path)
 			if new_sha1 != existing.sha1:
 				raise SafeException("A different archive with basename '{name}' is "
 						    "already in the repository: {archive}".format(name = archive, archive = existing))
-			step.url = existing.url
 		else:
 			archive_rel_url = paths.get_archive_rel_url(config, archive, impl)
 			stored_archive = Archive(archive, archive_rel_url)
@@ -96,7 +98,7 @@ def process_method(config, impl, method):
 					expected = step.size))
 			archives.append(stored_archive)
 
-			step.url = config.ARCHIVES_BASE_URL + archive_rel_url	# (just used below to test it)
+		step.url = "http://example.com/" + archive_path	# (just used below to test it)
 
 	if not has_external_archives:
 		# Check archives unpack to give the correct digests
@@ -143,14 +145,14 @@ class ArchiveDB:
 			basename = basename,
 			db = self.path))
 
-def process_archives(config, feed):
-	"""feed is the parsed XML in the incoming directory."""
+def process_archives(config, incoming_dir, feed):
+	"""feed is the parsed XML being processed. Any archives are in 'incoming_dir'."""
 
 	# Find required archives and check they're in 'incoming'
 	archives = []
 	for impl in feed.implementations.values():
 		for method in impl.download_sources:
-			archives += process_method(config, impl, method)
+			archives += process_method(config, incoming_dir, impl, method)
 
 	# Upload archives
 	config.upload_archives(archives)
@@ -164,8 +166,9 @@ def process_archives(config, feed):
 
 	return archives
 
-def finish_archives(config, archives):
-	# Move archives to backup dir (or delete if LOCAL_ARCHIVES_BACKUP_DIR not set)
+def finish_archives(config, archives, delete):
+	# Copy archives to backup dir if LOCAL_ARCHIVES_BACKUP_DIR is set.
+	# Then delete (if delete is True).
 
 	backup_dir = config.LOCAL_ARCHIVES_BACKUP_DIR
 	if backup_dir is not None:
@@ -176,8 +179,12 @@ def finish_archives(config, archives):
 		assert archive.basename in config.archive_db.entries, archive
 
 		if backup_dir is None:
-			os.unlink(archive.source_path)
+			if delete:
+				os.unlink(archive.source_path)
 		else:
 			backup_target_dir = join(backup_dir, dirname(archive.rel_url))
 			paths.ensure_dir(backup_target_dir)
-			os.rename(archive.source_path, join(backup_target_dir, archive.basename))
+			if delete:
+				os.rename(archive.source_path, join(backup_target_dir, archive.basename))
+			else:
+				shutil.copyfile(archive.source_path, join(backup_target_dir, archive.basename))

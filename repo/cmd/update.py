@@ -6,9 +6,11 @@ from __future__ import print_function
 import os
 from os.path import join
 
-from repo import incoming, build, catalog
+from repo import incoming, build, catalog, cmd
 
-def handle(config, args):
+def handle(args):
+	cmd.find_config()
+	config = cmd.load_config()
 	incoming.process_incoming_dir(config)
 	do_update(config)
 
