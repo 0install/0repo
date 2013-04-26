@@ -15,15 +15,17 @@ def main(argv):
 	parser = argparse.ArgumentParser(description='Manage a 0install repository.')
 	subparsers = parser.add_subparsers(dest='subcommand')
 
+	parser_import = subparsers.add_parser('add', help='import pre-existing feeds into 0repo')
+	parser_import.add_argument('path', metavar='PATH', nargs='+',
+			   help='the signed feeds to import')
+
 	parser_create = subparsers.add_parser('create', help='create a new repository')
 	parser_create.add_argument('path', metavar='DIR',
 			   help='the directory to create to hold the new repository')
 
-	subparsers.add_parser('update', help='process "incoming" and generate output files')
+	subparsers.add_parser('register', help='add this repository location to ~/.config/...')
 
-	parser_import = subparsers.add_parser('add', help='import pre-existing feeds into 0repo')
-	parser_import.add_argument('path', metavar='PATH', nargs='+',
-			   help='the signed feeds to import')
+	subparsers.add_parser('update', help='process "incoming" and generate output files')
 
 	if len(argv) == 1:
 		argv = argv + ['update']
@@ -51,7 +53,7 @@ def main(argv):
 		for setting in ['REPOSITORY_BASE_URL', 'ARCHIVES_BASE_URL', 'LOCAL_ARCHIVES_BACKUP_DIR']:
 			value = getattr(config, setting)
 			if not value.endswith('/'):
-				setattr(config, value + '/')
+				setattr(config, setting, value + '/')
 
 		config.archive_db = archives.ArchiveDB("archives.db")
 

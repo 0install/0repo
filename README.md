@@ -64,15 +64,21 @@ Edit 0repo-config.py and set the required parameters:
 
 These are required:
 
-- The base URL for the feeds
-- The base URL for the archives
-- GPG key to use for signing feeds
+- `REPOSITORY_BASE_URL`: The base URL for the feeds
+- `GPG_SIGNING_KEY`: GPG key to use for signing feeds
+- `ARCHIVES_BASE_URL`: The base URL for the archives
 
 These are optional:
 
 - Command to upload feeds to web hosting
 - Command to upload archives to archive hosting
 - GPG keys of trusted contributors
+
+Finally, register this repository so that other tools can find it (you need to do this after setting `REPOSITORY_BASE_URL`):
+
+    $ 0repo register
+    Created new entry in /home/me/.config/0install.net/0repo/repositories.json:
+    http://example.com/: {"path": "/home/me/repositories/myrepo", "type": "local"}
 
 
 Importing pre-existing feeds

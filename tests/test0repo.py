@@ -42,6 +42,8 @@ class Test0Repo(unittest.TestCase):
 		os.chmod(gpghome, 0o700)
 
 	def tearDown(self):
+		if '0repo-config' in sys.modules:
+			del sys.modules['0repo-config']
 		os.chdir("/")
 		shutil.rmtree(self.tmpdir)
 
@@ -113,6 +115,15 @@ class Test0Repo(unittest.TestCase):
 		# Import pre-existing feed
 		out = run_repo(['add', join(mydir, 'imported.xml')])
 		assert os.path.exists(join('public', 'tests', 'imported.xml'))
+
+	def testRegister(self):
+		out = run_repo(['create', 'my-repo'])
+		assert not out
+		out = run_repo(['register'])
+		assert 'http://example.com/myrepo/:' in out, out
+
+		out = run_repo(['register'])
+		assert "Already registered" in out, out
 
 if __name__ == '__main__':
 	unittest.main()
