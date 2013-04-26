@@ -3,10 +3,12 @@ import tempfile
 import shutil
 import subprocess
 import os, sys
+import imp
 from StringIO import StringIO
 
 from os.path import join
 
+from zeroinstall.support import basedir
 from zeroinstall.injector import qdom, model, gpg
 from zeroinstall.injector.namespaces import XMLNS_IFACE
 
@@ -41,6 +43,19 @@ class Test0Repo(unittest.TestCase):
 		os.environ['GNUPGHOME'] = gpghome
 		os.chmod(gpghome, 0o700)
 
+		os.environ['HOME'] = self.tmpdir
+
+		for x in ['XDG_CONFIG_HOME', 'XDG_DATA_HOME', 'XDG_CACHE_HOME']:
+			if x in os.environ:
+				del os.environ[x]
+		for x in ['XDG_CONFIG_DIRS', 'XDG_CACHE_DIRS', 'XDG_DATA_DIRS']:
+			os.environ[x] = ''
+
+		if 'ZEROINSTALL_PORTABLE_BASE' in os.environ:
+			del os.environ['ZEROINSTALL_PORTABLE_BASE']
+
+		imp.reload(basedir)
+
 	def tearDown(self):
 		if '0repo-config' in sys.modules:
 			del sys.modules['0repo-config']
@@ -50,13 +65,11 @@ class Test0Repo(unittest.TestCase):
 	def testSimple(self):
 		# (do a slow sub-process call here just to check that the top-level
 		# wrapper works)
-		subprocess.check_call(['0repo', 'create', 'my-repo'])
+		subprocess.check_call(['0repo', 'create', 'my-repo', 'Test Key for 0repo'])
 		os.chdir('my-repo')
 
 		with open('0repo-config.py') as stream:
 			data = stream.read()
-		data = data.replace('GPG_SIGNING_KEY = "0x2E32123D8BE241A3B6D91E0301685F11607BB2C5"',
-			            'GPG_SIGNING_KEY = "0x3F52282D484EB9401EE3A66A6D66BDF4F467A18D"')
 		data = data.replace('raise Exception("No upload method specified: edit upload_archives() in 0repo-config.py")',
 			            'pass')
 		with open('0repo-config.py', 'wt') as stream:
@@ -117,7 +130,7 @@ class Test0Repo(unittest.TestCase):
 		assert os.path.exists(join('public', 'tests', 'imported.xml'))
 
 	def testRegister(self):
-		out = run_repo(['create', 'my-repo'])
+		out = run_repo(['create', 'my-repo', 'Test Key for 0repo'])
 		assert not out
 		out = run_repo(['register'])
 		assert 'http://example.com/myrepo/:' in out, out

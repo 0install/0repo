@@ -5,7 +5,7 @@ REPOSITORY_BASE_URL = "http://example.com/myrepo/"
 # Git commits it makes. The fingerprint preceeded by "0x" is the most precise
 # way to identity a key (see "HOW TO SPECIFY A USER ID" in the gpg(1) man-page
 # for other options).
-GPG_SIGNING_KEY = "0x2E32123D8BE241A3B6D91E0301685F11607BB2C5"
+GPG_SIGNING_KEY = "{{GPGKEY}}"
 
 # Command to sync the public directory to the web hosting.
 # If None, you must sync manually after running 0repo.

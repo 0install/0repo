@@ -47,10 +47,21 @@ Features:
 Setup
 -----
 
-Run "0repo create DIR" to create a new repository (directory DIR will be
-created to hold the files and will be populated with an initial configuration).
+If you're setting up a repository for a single developer then you can use use
+your existing personal GPG key (if you have one). Otherwise, you should create
+a new one:
 
-    $ 0repo create ~/repo
+    $ gpg --gen-key
+
+You can accept the defaults offered. Make sure you specify an email address,
+because 0repo uses that as the committer in Git log messages, which require
+an email address.
+
+Then run "0repo create DIR KEY" to create the new repository (directory DIR
+will be created to hold the files and will be populated with an initial
+configuration).
+
+    $ 0repo create ~/repo 'John Smith'
     $ cd ~/repo
 
 Within this directory you will find:
@@ -65,7 +76,6 @@ Edit 0repo-config.py and set the required parameters:
 These are required:
 
 - `REPOSITORY_BASE_URL`: The base URL for the feeds
-- `GPG_SIGNING_KEY`: GPG key to use for signing feeds
 - `ARCHIVES_BASE_URL`: The base URL for the archives
 
 These are optional:

@@ -11,19 +11,7 @@ from zeroinstall.injector import qdom, model, gpg, trust
 from zeroinstall.injector.namespaces import XMLNS_IFACE
 from zeroinstall import SafeException
 
-from repo import paths, archives
-
-def ensure_no_uncommitted_changes(path):
-	child = subprocess.Popen(["git", "diff", "--exit-code"], cwd = dirname(path), stdout = subprocess.PIPE, stderr = subprocess.STDOUT)
-	stdout, unused = child.communicate()
-	if child.returncode == 0:
-		return
-
-	raise SafeException('Uncommitted changes in {feed}!\n'
-			    'In the feeds directory, use:\n\n'
-			    '"git commit -a" to commit them, or\n'
-			    '"git stash" to discard.\n\n'
-			    'Changes are:\n{changes}'.format(feed = path, changes = stdout))
+from repo import paths, archives, scm
 
 def process(config, xml_file, import_master = False):
 	# Step 1 : check everything looks sensible, reject if not
@@ -77,7 +65,7 @@ def process(config, xml_file, import_master = False):
 				url = feed.url,
 				path = feed_path))
 	else:
-		ensure_no_uncommitted_changes(feed_path)
+		scm.ensure_no_uncommitted_changes(feed_path)
 
 	# Step 2 : upload archives to hosting
 
@@ -110,7 +98,7 @@ def process(config, xml_file, import_master = False):
 		# (this must be last in the try block)
 		action = 'Imported' if import_master else 'Merged'
 		commit_msg = '%s %s\n\n%s' % (action, basename(xml_file), xml_text.encode('utf-8'))
-		subprocess.check_call(['git', 'commit', '-q', '-m', commit_msg, '-S' + config.GPG_SIGNING_KEY, '--', git_path], cwd = 'feeds')
+		scm.commit('feeds', [git_path], commit_msg, key = config.GPG_SIGNING_KEY)
 	except Exception as ex:
 		# Roll-back (we didn't commit to Git yet)
 		print(ex)
