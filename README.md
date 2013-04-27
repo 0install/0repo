@@ -4,9 +4,6 @@
 Copyright Thomas Leonard, 2013
 
 
-WARNING: much of this isn't implemented yet!
-
-
 Introduction
 ------------
 
@@ -28,7 +25,8 @@ Features:
 - Can be run automatically as part of a scripted release process (for
   single-developer use).
 
-- Can run as a service to accept contributions from multiple developers.
+- Can run as a service to accept contributions from multiple developers (not
+  yet implemented).
 
 - Keeps feeds under version control.
 
@@ -67,9 +65,10 @@ configuration).
 Within this directory you will find:
 
 - 0repo-config.py - configuration settings
-- feeds	        - directory of (unsigned) feeds, initially empty
-- feeds/.git	- version control Git repository for the feeds
-- public	        - output directory (to be rsync'd to hosting provider)
+- feeds	          - directory of (unsigned) feeds, initially empty
+- feeds/.git	  - version control Git repository for the feeds
+- incoming	  - queue of incoming files to be processed
+- public	  - output directory (to be rsync'd to hosting provider)
 
 Edit 0repo-config.py and set the required parameters:
 
@@ -80,9 +79,9 @@ These are required:
 
 These are optional:
 
-- Command to upload feeds to web hosting
+- Command to upload feeds to web hosting (not yet implemented)
 - Command to upload archives to archive hosting
-- GPG keys of trusted contributors
+- GPG keys of trusted contributors (not yet implemented)
 
 Finally, register this repository so that other tools can find it (you need to do this after setting `REPOSITORY_BASE_URL`):
 
@@ -96,75 +95,61 @@ Importing pre-existing feeds
 
 If you've been managing a set of feeds without 0repo, you can import them into it using the `add` command:
 
-    0repo add .../old-repo/*.xml
+    cd .../my-old-repository
+    0repo add *.xml
 
-The feeds must be signed. They will be added to the `feeds` directory, without the signatures (which will however
-appear in the Git commit message).
+The feeds will be added to the `feeds` directory, with any signatures removed (the signature will be stored in the Git commit message). 0repo looks at the `uri` attribute in the XML to decide which of the registered repositories to use.
 
 
 Adding a release
 ----------------
 
-0repo is designed to be called by other tools, such as 0release, 0template,
-0downstream, etc. However, this section explains how the process can be
-performed manually instead.
+To add a release, create a local XML file containing just the new version, with a `<feed-for>` giving the target feed. For example, you could do this using [0template](http://0install.net/0template.html):
 
-Place the XML of your new release in the "incoming" directory. For testing,
-you could add this file as repo/incoming/GNU-Hello-1.3.xml:
+    $ 0template someprog.xml.template version=1.2
+    Writing someprog-1.2.xml
 
-    <?xml version="1.0" ?>
-    <interface xmlns="http://zero-install.sourceforge.net/2004/injector/interface"
-               xmlns:compile="http://zero-install.sourceforge.net/2006/namespaces/0compile">
-      <name>GNU Hello</name>
-      <summary>produces a familiar, friendly greeting</summary>
-      <description>The GNU Hello program produces a familiar, friendly greeting.</description>
-      <homepage>http://www.gnu.org/software/hello/</homepage>
-    
-      <feed-for interface='{REPO_BASE}/GNU-Hello.xml'/>
-    
-      <group arch="*-src">
-        <command name='compile'
-	         shell-command='"$SRCDIR/configure" --prefix="$DISTDIR" &amp;&amp; make install'>
-          <compile:implementation main="bin/hello"/>
-        </command>
-        <requires interface="http://repo.roscidus.com/devel/make">
-          <environment insert="bin" name="PATH"/>
-        </requires>
-        <implementation id="sha1=2aae32fd27d194167eac7eb611d7ce0983f83dd7" version="1.3">
-          <archive extract="hello-1.3" href="http://ftp.gnu.org/gnu/hello/hello-1.3.tar.gz" size="87942"/>
-        </implementation>
-      </group>
-    </interface>
+Then, ask 0repo to add the new XML to the repository:
 
-Replace the `<feed-for>`'s `{REPO_BASE}` with the URL of the directory where
-you will publish.
+    $ 0repo add someprog-1.2.xml
 
-Note that, in this example, the archive is hosted outside of the repository. To
-store the release in the repository, use a relative href on the `<archive>`
-element and place the archive in the incoming directory too. e.g.
+0repo will use the `<feed-for>` to select the correct repository and will add
+it there. If the feed doesn't already exist in the repository, 0repo will
+create a new one for it.
 
-    <archive extract="hello-1.3" href="hello-1.3.tar.gz" size="87942"/>
 
-When you are ready, run 0repo inside the "repo" directory. If your new version
-is accepted, a new unsigned feed file be created as repo/feeds/GNU-Hello.xml
-and committed to Git. A signed version of this feed will appear as
-repo/public/GNU-Hello.xml. If you specified a relative URL for the archive, the
-signed version will have an absolute URL and the archive will be copied to your
-configured archives directory. On success, the files are deleted from the
-incoming directory.
+Archives
+--------
 
-You will also have a public/catalog.xml file listing the new program.
+If the archives are to be stored outside of the repository (e.g. an existing
+3rd-party release), you can just include the full URL in the XML file.
+
+On the other hand, if you wish to store the release archives in the repository,
+use a relative href on the `<archive>` element and place the archive in the
+same directory as your XML. e.g.
+
+    <archive extract="someprog-1.2" href="someprog-1.2.tar.gz" size="87942"/>
+
+0repo will upload the archive to the repository's file hosting (using the command
+configured in `0repo-config.py`) and insert the full URL into the generated feed.
+
+
+The generated files
+-------------------
+
+After importing feeds or adding new versions, 0repo will generate a set of signed
+feeds in the `public` directory, along with a `catalog.xml` file listing all the
+programs in the repository, the repository's public GPG key and various stylesheets.
 
 When 0repo generates the signed feeds it will also:
 
 - check that each feed's URI is correct for its location
 - add the stylesheet declaration
-- for each relative <archive>'s href, check that the archive exists
-  locally and make the URL absolute
+- for each relative <archive>'s href, check that the archive is known
+  and make the URL absolute
 
-The results go in a separate 'public' directory, which can then be
-transferred to the hosting provider (e.g. using rsync). This directory
-also contains a generated `catalog.xml` file, which 0mirror can poll.
+The `public` directory can then be transferred to the hosting provider (e.g.
+using rsync).
 
 
 Editing feeds
@@ -180,6 +165,8 @@ To remove a feed, `git rm repo/feeds/FEED.xml` and run `0repo` again.
 Running a shared repository
 ---------------------------
 
+This is not yet implemented.
+
 For a shared repository: the release tool generates the archives and
 the XML for the new version, signs the XML with the developer's key,
 and uploads to a queue (could be e.g. FTP). 0repo downloads the
@@ -187,10 +174,9 @@ contents of the queue to its incoming directory, checks the signature
 and merges the new XML into the feed. If there's a problem, it emails
 the user.
 
-For other edits (e.g. adding a <package-implementation> or adding a missing
+For other edits (e.g. adding a `<package-implementation>` or adding a missing
 dependency to an already-released version), the contributor sends a Git pull
-request. The repository owner merges the pull request and runs
-0repo.
+request. The repository owner merges the pull request and runs 0repo.
 
 
 Auditing
