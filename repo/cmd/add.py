@@ -43,7 +43,7 @@ def handle(args):
 		assert from_registry['type'] == 'local', 'Unsupported registry type in %s' % from_registry
 		os.chdir(from_registry['path'])
 
-		print("Adding to registry '{path}'".format(path = path))
+		print("Adding to registry '{path}'".format(path = from_registry['path']))
 
 	config = cmd.load_config()
 
