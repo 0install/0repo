@@ -124,7 +124,7 @@ def build_public_feeds(config):
 					with open(target_path, 'rb') as stream:
 						old_doc = minidom.parse(stream)
 					if xmltools.nodes_equal(old_doc.documentElement, new_doc.documentElement):
-						print("%s unchanged" % source_path)
+						#print("%s unchanged" % source_path)
 						changed = False
 				feeds.append(PublicFeed(target_path, new_doc, changed))
 
