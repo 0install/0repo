@@ -67,9 +67,17 @@ def process(config, xml_file, delete_on_success):
 
 	if import_master:
 		if os.path.exists(feed_path):
-			raise SafeException("Can't import '{url}'; feed {path} already exists".format(
-				url = feed.url,
-				path = feed_path))
+			with open(feed_path, 'rb') as stream:
+				existing = stream.read()
+			if existing == xml_text[:sig_index]:
+				print("Already imported {feed}; skipping".format(feed = feed_path))
+				if delete_on_success:
+					os.unlink(xml_file)
+				return
+			else:
+				raise SafeException("Can't import '{url}'; non-identical feed {path} already exists".format(
+					url = feed.url,
+					path = feed_path))
 	else:
 		scm.ensure_no_uncommitted_changes(feed_path)
 
