@@ -8,6 +8,7 @@ from StringIO import StringIO
 
 from os.path import join
 
+from zeroinstall import SafeException
 from zeroinstall.support import basedir
 from zeroinstall.injector import qdom, model, gpg
 from zeroinstall.injector.namespaces import XMLNS_IFACE
@@ -131,6 +132,28 @@ class Test0Repo(unittest.TestCase):
 		# Import pre-existing feed
 		out = run_repo(['add', join(mydir, 'imported.xml')])
 		assert os.path.exists(join('public', 'tests', 'imported.xml'))
+
+		# Check invalid feeds
+		with open(join(mydir, 'test-1.xml'), 'rt') as stream:
+			orig_data = stream.read()
+		def test_invalid(xml):
+			with open('test.xml', 'wt') as stream:
+				stream.write(xml)
+			try:
+				run_repo(['add', 'test.xml'])
+				assert 0, 'Not rejected'
+			except SafeException as ex:
+				return str(ex)
+
+		ex = test_invalid(orig_data.replace('license', 'LICENSE'))
+		assert "Missing 'license' attribute in" in ex, ex
+
+		ex = test_invalid(orig_data.replace('released', 'RELEASED'))
+		assert "Missing 'released' attribute in" in ex, ex
+
+		ex = test_invalid(orig_data.replace('version="1"', 'version="1-pre"'))
+		assert "Version number must end in a digit (got 1-pre)" in ex, ex
+
 
 	def testRegister(self):
 		out = run_repo(['create', 'my-repo', 'Test Key for 0repo'])

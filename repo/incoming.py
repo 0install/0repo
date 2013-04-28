@@ -59,6 +59,13 @@ def process(config, xml_file, delete_on_success):
 
 	feed = model.ZeroInstallFeed(root)
 
+	# Perform custom checks defined by the repository owner
+	for impl in feed.implementations.values():
+		problem = config.check_new_impl(impl)
+		if problem:
+			raise SafeException("{problem} in {xml_file}\n(this check was configured in {config}: check_new_impl())".format(
+				problem = problem, xml_file = xml_file, config = config.__file__))
+
 	feeds_rel_path = paths.get_feeds_rel_path(config, master)
 	feed_path = join("feeds", feeds_rel_path)
 	feed_dir = dirname(feed_path)

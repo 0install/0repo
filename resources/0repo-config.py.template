@@ -7,20 +7,10 @@ REPOSITORY_BASE_URL = "http://example.com/myrepo/"
 # for other options).
 GPG_SIGNING_KEY = "{{GPGKEY}}"
 
-# Command to sync the public directory to the web hosting.
-# If None, you must sync manually after running 0repo.
-SYNC_PUBLIC_COMMAND = None
-
 # If set, XML feeds in the "incoming" directory and any Git pull requests must be signed by one of
 # these keys, otherwise they will be rejected. For local use, this can be set to None so that the
 # files don't need to be signed.
 CONTRIBUTOR_GPG_KEYS = None
-
-# False : no license checking
-# True  : all implementations must specify a license
-# A set : all implementations must specify a license from the given set
-REQUIRE_LICENSE = True
-#REQUIRE_LICENSE = {"OSI Approved :: GNU Lesser General Public License (LGPL)"}
 
 
 #### Archive hosting ####
@@ -67,6 +57,34 @@ def upload_archives(archives):
 		#subprocess.check_call(["cp"] + files + [join(archives_local_dir, dir_rel_url)])
 
 		raise Exception("No upload method specified: edit upload_archives() in 0repo-config.py")
+
+
+#### Custom checks and rules ####
+
+# When adding a new implementation to the repository, this function is called to check that
+# it meets the repository policies. Return a string explaining the problem, if any.
+def check_new_impl(impl):
+	# Example: disallow in-progress version numbers (e.g. "1.2-pre")
+	version = impl.get_version()
+	if not version[-1].isdigit():
+		return "Version number must end in a digit (got {version})".format(version = version)
+
+	# Example: Must has a release date
+	released = impl.metadata.get('released', None)
+	if not released:
+		return "Missing 'released' attribute"
+
+	# Example: Must have a license
+	license = impl.metadata.get('license', None)
+	if license is None:
+		return "Missing 'license' attribute"
+
+	# Example: License must be OSI approved
+	#if not license.startswith('OSI Approved :: '):
+	#	return "Only Open Source software is permitted in this repository (license must start 'OSI Approved :: ')"
+
+	return None
+
 
 #### Repository Layout (advanced) ####
 

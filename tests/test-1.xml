@@ -9,7 +9,7 @@
 
   <feed-for interface="http://example.com/myrepo/tests/test.xml"/>
 
-  <group>
+  <group license='Example only' released='2013-04-28'>
     <command name="run" path="test.py">
       <runner interface="http://repo.roscidus.com/python/python">
 	<version not-before="3"/>

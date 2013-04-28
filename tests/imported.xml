@@ -4,15 +4,15 @@
   <name>pre-existing</name>
   <summary>imported from pre-existing repository</summary>
 
-  <group>
+  <group license="Example only" released="2013-04-28">
     <implementation id="sha1new=123" version="1">
       <archive href="http://example.com/imported-1.tar.bz2" size="200"/>
     </implementation>
   </group>
 </interface>
 <!-- Base64 Signature
-iJwEAAECAAYFAlF5UbQACgkQbWa99PRnoY10fQQAjw1GaBAOlmtbw7ZxQc96CfOGb5jIdLTUzCkv
-cyBLX6lL/HkQfXrKgFZDJPj6F0wefIRvm4OUe8HEk2X3096X7Sy2wV6o0TGpDHoGVW+a2RIQD9T7
-afJrl9ADXq6NQWgIT8CJf8V72df9WgIOXarof1qPbTXiYQJf6gjpyJd2Mzo=
+iJwEAAECAAYFAlF9Ej8ACgkQbWa99PRnoY1ZEAP/YAPbrWtQ1N3g1HzzyGyL/Ob0cCEVPTGWnHy5
+jBuAqjksOpQfHx4iRtdHTIvZEIraIvFJMKpSF7vM3SHg12hZ5Oceyz3+g5vhrDTzTXjk9aLoM8Yy
+S1YcsRk5iNeg2vL1zlKAfyDCY+g/dFLtfTcf6HSh/tyWYJRQdxdnZbTR54g=
 
 -->
