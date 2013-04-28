@@ -36,6 +36,21 @@ def run_repo(args):
 		os.chdir(oldcwd)
 		sys.stdout = old_stdout
 
+def update_config(old, new):
+	if '0repo-config' in sys.modules:
+		del sys.modules['0repo-config']
+
+	with open('0repo-config.py') as stream:
+		config_data = stream.read()
+
+	with open('0repo-config.py', 'wt') as stream:
+		new_data = config_data.replace(old, new)
+		assert new_data != config_data
+		stream.write(new_data)
+
+	if os.path.exists('0repo-config.pyc'):
+		os.unlink('0repo-config.pyc')
+
 class Test0Repo(unittest.TestCase):
 	def setUp(self):
 		self.tmpdir = tempfile.mkdtemp('-0repo')
@@ -72,12 +87,7 @@ class Test0Repo(unittest.TestCase):
 		subprocess.check_call(['0repo', 'create', 'my-repo', 'Test Key for 0repo'])
 		os.chdir('my-repo')
 
-		with open('0repo-config.py') as stream:
-			data = stream.read()
-		data = data.replace('raise Exception("No upload method specified: edit upload_archives() in 0repo-config.py")',
-			            'pass')
-		with open('0repo-config.py', 'wt') as stream:
-			stream.write(data)
+		update_config('raise Exception("No upload method specified: edit upload_archives() in 0repo-config.py")', 'pass')
 
 		# Regenerate
 		out = run_repo([])
@@ -129,10 +139,6 @@ class Test0Repo(unittest.TestCase):
 		impl2 = feed.implementations['sha1new=290eb133e146635fe37713fd58174324a16d595f']
 		self.assertEqual(stored_archive.url, impl2.download_sources[0].url)
 
-		# Import pre-existing feed
-		out = run_repo(['add', join(mydir, 'imported.xml')])
-		assert os.path.exists(join('public', 'tests', 'imported.xml'))
-
 		# Check invalid feeds
 		with open(join(mydir, 'test-1.xml'), 'rt') as stream:
 			orig_data = stream.read()
@@ -153,6 +159,20 @@ class Test0Repo(unittest.TestCase):
 
 		ex = test_invalid(orig_data.replace('version="1"', 'version="1-pre"'))
 		assert "Version number must end in a digit (got 1-pre)" in ex, ex
+
+		# Import pre-existing feed
+		update_config('CONTRIBUTOR_GPG_KEYS = None', 'CONTRIBUTOR_GPG_KEYS = set()')
+
+		try:
+			run_repo(['add', join(mydir, 'imported.xml')])
+			assert 0
+		except SafeException as ex:
+			assert 'No trusted signatures on feed' in str(ex)
+
+		update_config('CONTRIBUTOR_GPG_KEYS = set()', 'CONTRIBUTOR_GPG_KEYS = {"3F52282D484EB9401EE3A66A6D66BDF4F467A18D"}')
+
+		out = run_repo(['add', join(mydir, 'imported.xml')])
+		assert os.path.exists(join('public', 'tests', 'imported.xml'))
 
 
 	def testRegister(self):

@@ -48,14 +48,14 @@ def process(config, xml_file, delete_on_success):
 		root.attrs['uri'] = master	# (hack so we can parse it here without setting local_path)
 
 	# Check signatures are valid
-	if sigs or import_master:
+	if config.CONTRIBUTOR_GPG_KEYS is not None:
 		for sig in sigs:
-			if sig.is_trusted(trust.domain_from_url(master)):
+			if isinstance(sig, gpg.ValidSig) and sig.fingerprint in config.CONTRIBUTOR_GPG_KEYS:
 				break
 		else:
-			raise SafeException("No trusted signatures on feed {path}; signatures were {sigs}".format(
+			raise SafeException("No trusted signatures on feed {path}; signatures were: {sigs}".format(
 				path = xml_file,
-				sigs = sigs))
+				sigs = ', '.join([str(s) for s in sigs])))
 
 	feed = model.ZeroInstallFeed(root)
 

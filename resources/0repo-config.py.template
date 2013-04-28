@@ -11,6 +11,7 @@ GPG_SIGNING_KEY = "{{GPGKEY}}"
 # these keys, otherwise they will be rejected. For local use, this can be set to None so that the
 # files don't need to be signed.
 CONTRIBUTOR_GPG_KEYS = None
+#CONTRIBUTOR_GPG_KEYS = { "DA9825AECAD089757CDABD8E07133F96CA74D8BA" }
 
 
 #### Archive hosting ####
