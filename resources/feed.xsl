@@ -20,7 +20,7 @@ http://creativecommons.org/licenses/by-sa/2.5/
 			</head>
 			<body>
 				<div class="site">
-					<div class="title"> 
+					<div class="title">
 						<a href="@REPOSITORY_BASE_URL@">@REPOSITORY_BASE_URL@</a>
 					</div>
 					<div class="main">

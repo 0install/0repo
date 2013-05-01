@@ -14,11 +14,50 @@ CONTRIBUTOR_GPG_KEYS = None
 #CONTRIBUTOR_GPG_KEYS = { "DA9825AECAD089757CDABD8E07133F96CA74D8BA" }
 
 
-#### Archive hosting ####
-
+# Some Python imports (needed for the code below) - you can leave these alone
+import os
 from repo import paths
 import subprocess
 from os.path import join
+
+
+#### Feed hosting ####
+
+# Copy everything in './public' to REPOSITORY_BASE_URL
+# e.g. so that public/catalog.xml can be downloaded as REPOSITORY_BASE_URL/catalog.xml
+# files is the set of files maintained by 0repo, which may be useful if you want to
+# sync just those, commit them to Git, etc. Pathnames are relative to 'public', which is
+# also the current directory.
+def upload_public_dir(files):
+	# Example 1: just ask the user to upload manually
+	print("Now copy {public} to {url}".format(public = os.getcwd(), url = REPOSITORY_BASE_URL))
+	raw_input("Press Return when done (edit 0repo-config.py:upload_public_dir() to automate this)")
+
+	# Example2: use a Git repository to sync to the hosting server
+	#
+	# A post-receive hook at the remote end can be used to check out the new version automatically.
+	# Assuming you push to the 'master' branch and the working copy is some other branch (e.g. 'live'),
+	# your (executable!) .git/hooks/post-receive should be:
+	#
+	# #!/bin/sh
+	# unset GIT_DIR; cd .. && git merge --ff-only master
+	#
+	# (change to "if 1" to enable)
+	if 0:
+		# Make sure Git is tracking any new files
+		subprocess.check_call(['git', 'add', '--'] + files)
+		# Display full diffs for modified files (excludes new files)
+		subprocess.check_call(['git', 'diff', '--diff-filter=M', 'HEAD', '--'] + files)
+		# Display a summary of all changes (including new files)
+		changed = subprocess.call(['git', 'diff', '--exit-code', '--stat', 'HEAD', '--'] + files)
+		if changed:
+			raw_input("Press Return to commit and push the above changes. CTRL-C to abort.")
+			subprocess.check_call(['git', 'commit', '-m', '0repo updates', '--'] + files)
+			subprocess.check_call(['git', 'push'])
+		else:
+			print("No changes to public, so not pushing.")
+
+#### Archive hosting ####
 
 # The URL of the directory containing the archives (which will not be under REPOSITORY_BASE_URL if
 # you are hosting archives on a different server). Note that uploaders can choose whether to store

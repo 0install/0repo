@@ -45,3 +45,5 @@ def write_catalog(config, feeds):
 		stream.write(catalog_header)
 		cat_doc.documentElement.writexml(stream)
 	os.rename(catalog_file + '.new', catalog_file)
+
+	return ['catalog.xml']

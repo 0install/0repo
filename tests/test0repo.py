@@ -30,6 +30,7 @@ def run_repo(args):
 	old_stdout = sys.stdout
 	sys.stdout = StringIO()
 	try:
+		sys.stdin = StringIO('\n')	# (simulate a press of Return if needed)
 		main(['0repo'] + args)
 		return sys.stdout.getvalue()
 	finally:

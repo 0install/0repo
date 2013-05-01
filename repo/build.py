@@ -117,7 +117,8 @@ def build_public_feeds(config):
 		for f in filenames:
 			if f.endswith('.xml') and not f.startswith('.'):
 				source_path = join(dirpath, f)
-				target_path = join("public", paths.get_public_rel_path(config, relpath(source_path, 'feeds')))
+				public_rel_path = paths.get_public_rel_path(config, relpath(source_path, 'feeds'))
+				target_path = join("public", public_rel_path)
 				new_doc = generate_public_xml(config, source_path)
 				changed = True
 				if os.path.exists(target_path):
@@ -126,24 +127,31 @@ def build_public_feeds(config):
 					if xmltools.nodes_equal(old_doc.documentElement, new_doc.documentElement):
 						#print("%s unchanged" % source_path)
 						changed = False
-				feeds.append(PublicFeed(target_path, new_doc, changed))
+				feeds.append(PublicFeed(public_rel_path, new_doc, changed))
 
 	key_path = export_key('keys', config.GPG_SIGNING_KEY)
 
-	for target_path, new_doc, changed in feeds:
+	other_files = [key_path]
+
+	for public_feed in feeds:
+		target_path = join('public', public_feed.public_rel_path)
+
 		target_dir = dirname(target_path)
 		if not os.path.isdir(target_dir):
 			os.makedirs(target_dir)
 
 		if config.GPG_PUBLIC_KEY_DIRECTORY:
-			key_symlink_path = join(target_dir, config.GPG_PUBLIC_KEY_DIRECTORY, basename(key_path))
+			key_symlink_rel_path = join(dirname(public_feed.public_rel_path), config.GPG_PUBLIC_KEY_DIRECTORY, basename(key_path))
+			other_files.append(key_symlink_rel_path)
+			key_symlink_path = join('public', key_symlink_rel_path)
 			if not os.path.islink(key_symlink_path):
+				assert not os.path.exists(key_symlink_path), key_symlink_path
 				os.symlink(relpath(key_path, dirname(key_symlink_path)), key_symlink_path)
 
-		if not changed: continue
+		if not public_feed.changed: continue
 
 		path_to_resources = relpath(join('public', 'resources'), dirname(target_path))
-		new_xml = (feed_header % path_to_resources).encode('utf-8') + new_doc.documentElement.toxml('utf-8') + '\n'
+		new_xml = (feed_header % path_to_resources).encode('utf-8') + public_feed.doc.documentElement.toxml('utf-8') + '\n'
 
 		signed_xml = sign_xml(config, new_xml)
 
@@ -152,4 +160,4 @@ def build_public_feeds(config):
 		os.rename(target_path + '.new', target_path)
 		print("Updated", target_path)
 
-	return feeds
+	return feeds, other_files

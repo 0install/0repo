@@ -15,19 +15,26 @@ def handle(args):
 	do_update(config)
 
 def do_update(config):
-	feeds = build.build_public_feeds(config)
+	feeds, files = build.build_public_feeds(config)
 
-	catalog.write_catalog(config, feeds)
+	files += [f.public_rel_path for f in feeds]
+
+	files += catalog.write_catalog(config, feeds)
+
+	os.chdir('public')
 
 	# Add default styles, if missing
-	resources_dir = join('public', 'resources')
+	resources_dir = join('resources')
 	if not os.path.isdir(resources_dir):
 		os.mkdir(resources_dir)
 	for resource in ['catalog.xsl', 'catalog.css', 'feed.xsl', 'feed.css']:
-		target = join('public', 'resources', resource)
+		target = join('resources', resource)
+		files.append(target)
 		if not os.path.exists(target):
 			with open(join(config.default_resources, resource), 'rt') as stream:
 				data = stream.read()
 			data = data.replace('@REPOSITORY_BASE_URL@', config.REPOSITORY_BASE_URL)
 			with open(target, 'wt') as stream:
 				stream.write(data)
+
+	config.upload_public_dir(files)
