@@ -142,6 +142,8 @@ def process(config, xml_file, delete_on_success):
 	# reprocess once the archives have gone.
 	archives.finish_archives(config, processed_archives, delete_on_success)
 
+	return commit_msg.split('\n', 1)[0]
+
 def process_incoming_dir(config):
 	"""Current directory contains 'incoming'."""
 	incoming_files = os.listdir('incoming')
@@ -150,9 +152,13 @@ def process_incoming_dir(config):
 		if i.endswith('.xml'):
 			new_xml.append(i)
 
+	messages = []
+
 	if new_xml:
 		for xml in new_xml:
 			print("Processing", xml)
-			process(config, os.path.join('incoming', xml), delete_on_success = True)
+			messages.append(process(config, os.path.join('incoming', xml), delete_on_success = True))
 	else:
 		print('No .xml files in "incoming" directory (nothing to process)')
+	
+	return messages

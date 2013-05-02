@@ -11,10 +11,10 @@ from repo import incoming, build, catalog, cmd
 def handle(args):
 	cmd.find_config()
 	config = cmd.load_config()
-	incoming.process_incoming_dir(config)
-	do_update(config)
+	messages = incoming.process_incoming_dir(config)
+	do_update(config, messages)
 
-def do_update(config):
+def do_update(config, messages = None):
 	feeds, files = build.build_public_feeds(config)
 
 	files += [f.public_rel_path for f in feeds]
@@ -37,4 +37,6 @@ def do_update(config):
 			with open(target, 'wt') as stream:
 				stream.write(data)
 
-	config.upload_public_dir(files)
+	if not messages:
+		messages.append('0repo update')
+	config.upload_public_dir(files, message = ', '.join(messages))

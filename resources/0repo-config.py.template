@@ -25,10 +25,11 @@ from os.path import join
 
 # Copy everything in './public' to REPOSITORY_BASE_URL
 # e.g. so that public/catalog.xml can be downloaded as REPOSITORY_BASE_URL/catalog.xml
-# files is the set of files maintained by 0repo, which may be useful if you want to
+# 'files' is the set of files maintained by 0repo, which may be useful if you want to
 # sync just those, commit them to Git, etc. Pathnames are relative to 'public', which is
 # also the current directory.
-def upload_public_dir(files):
+# 'message' can be used if you want to log the reason for the update.
+def upload_public_dir(files, message):
 	# Example 1: just ask the user to upload manually
 	print("Now copy {public} to {url}".format(public = os.getcwd(), url = REPOSITORY_BASE_URL))
 	raw_input("Press Return when done (edit 0repo-config.py:upload_public_dir() to automate this)")
@@ -52,7 +53,7 @@ def upload_public_dir(files):
 		changed = subprocess.call(['git', 'diff', '--exit-code', '--stat', 'HEAD', '--'] + files)
 		if changed:
 			raw_input("Press Return to commit and push the above changes. CTRL-C to abort.")
-			subprocess.check_call(['git', 'commit', '-m', '0repo updates', '--'] + files)
+			subprocess.check_call(['git', 'commit', '-m', message, '--'] + files)
 			subprocess.check_call(['git', 'push'])
 		else:
 			print("No changes to public, so not pushing.")

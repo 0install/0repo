@@ -29,7 +29,8 @@ def handle(args):
 
 	config = cmd.load_config()
 
+	messages = []
 	for feed in files:
 		print("Adding", feed)
-		incoming.process(config, feed, delete_on_success = False)
-	update.do_update(config)
+		messages.append(incoming.process(config, feed, delete_on_success = False))
+	update.do_update(config, messages = messages)
