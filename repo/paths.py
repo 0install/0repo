@@ -9,7 +9,7 @@ from zeroinstall import SafeException
 
 def ensure_dir(path):
 	if not os.path.isdir(path):
-		os.mkdir(path)
+		os.makedirs(path)
 
 def group_by_target_url_dir(archives):
 	results = collections.defaultdict(lambda: [])		# rel_url -> [basename]
