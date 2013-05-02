@@ -114,8 +114,12 @@ def process(config, xml_file, delete_on_success):
 			did_git_add = True
 
 		# (this must be last in the try block)
-		action = 'Imported' if import_master else 'Merged'
-		commit_msg = '%s %s\n\n%s' % (action, basename(xml_file), xml_text.encode('utf-8'))
+		if import_master:
+			action = 'Imported {file}'.format(file = basename(xml_file))
+		else:
+			versions = set(i.get_version() for i in feed.implementations.values())
+			action = 'Added {name} {versions}'.format(name = feed.get_name(), versions = ', '.join(versions))
+		commit_msg = '%s\n\n%s' % (action, xml_text.encode('utf-8'))
 		scm.commit('feeds', [git_path], commit_msg, key = config.GPG_SIGNING_KEY)
 	except Exception as ex:
 		# Roll-back (we didn't commit to Git yet)
