@@ -4,7 +4,7 @@
 from __future__ import print_function
 
 import os, shutil, hashlib, collections
-from os.path import join, dirname, abspath
+from os.path import join, basename, dirname, abspath
 
 from zeroinstall.injector.handler import Handler
 from zeroinstall.injector import model, fetch
@@ -15,9 +15,9 @@ from zeroinstall.zerostore import Store
 from repo import paths
 
 class Archive(object):
-	def __init__(self, basename, rel_url):
-		self.basename = basename
-		self.source_path = abspath(join("incoming", self.basename))
+	def __init__(self, source_path, rel_url):
+		self.basename = basename(source_path)
+		self.source_path = source_path
 		self.rel_url = rel_url
 
 class TestStores:
@@ -89,7 +89,7 @@ def process_method(config, incoming_dir, impl, method):
 						    "already in the repository: {archive}".format(name = archive, archive = existing))
 		else:
 			archive_rel_url = paths.get_archive_rel_url(config, archive, impl)
-			stored_archive = Archive(archive, archive_rel_url)
+			stored_archive = Archive(archive_path, archive_rel_url)
 			actual_size = os.path.getsize(stored_archive.source_path)
 			if step.size != actual_size:
 				raise SafeException("Archive '{archive}' has size '{actual}', but XML says size should be {expected}".format(
