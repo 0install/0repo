@@ -1,4 +1,5 @@
 <?xml version="1.0" ?>
+<?xml-stylesheet type='text/xsl' href='interface.xsl'?>
 <interface xmlns="http://zero-install.sourceforge.net/2004/injector/interface">
   <name>0repo</name>
   <summary>manage a repository of 0install feeds</summary>
@@ -28,11 +29,11 @@
     </command>
 
     <requires interface="http://repo.roscidus.com/python/python">
-      <version not-before="2.7" before="3"/>
+      <version before="3" not-before="2.7"/>
     </requires>
 
     <requires interface="http://0install.net/2006/interfaces/0publish">
-      <executable-in-var name='ZEROPUBLISH'/>
+      <executable-in-var name="ZEROPUBLISH"/>
     </requires>
 
     <requires interface="http://0install.net/2007/interfaces/ZeroInstall.xml">
@@ -40,6 +41,6 @@
       <version not-before="2.2"/>
     </requires>
 
-    <implementation id="." version="0.1-pre"/>
+    <implementation id="." released="2013-05-02" version="0.1"/>
   </group>
 </interface>
