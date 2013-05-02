@@ -96,6 +96,7 @@ class Test0Repo(unittest.TestCase):
 		assert os.path.exists(join('public', 'catalog.xml'))
 		assert os.path.exists(join('public', 'resources/catalog.xsl'))
 		assert os.path.exists(join('public', 'resources/catalog.css'))
+		assert os.path.exists(join('public', 'keys', '6D66BDF4F467A18D.gpg'))
 
 		# Create a new feed (external archive)
 		shutil.copyfile(join(mydir, 'test-1.xml'), join('incoming', 'test-1.xml'))

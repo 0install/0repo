@@ -129,9 +129,9 @@ def build_public_feeds(config):
 						changed = False
 				feeds.append(PublicFeed(public_rel_path, new_doc, changed))
 
-	key_path = export_key('keys', config.GPG_SIGNING_KEY)
+	key_path = export_key(join('public', 'keys'), config.GPG_SIGNING_KEY)
 
-	other_files = [key_path]
+	other_files = [relpath(key_path, 'public')]
 
 	for public_feed in feeds:
 		target_path = join('public', public_feed.public_rel_path)
@@ -147,6 +147,7 @@ def build_public_feeds(config):
 			if not os.path.islink(key_symlink_path):
 				assert not os.path.exists(key_symlink_path), key_symlink_path
 				os.symlink(relpath(key_path, dirname(key_symlink_path)), key_symlink_path)
+			os.stat(key_symlink_path)
 
 		if not public_feed.changed: continue
 
