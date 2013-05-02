@@ -7,7 +7,7 @@ import os, subprocess
 from io import BytesIO
 from os.path import join, dirname, basename, relpath
 
-from zeroinstall.injector import qdom, model, gpg, trust
+from zeroinstall.injector import qdom, model, gpg
 from zeroinstall.injector.namespaces import XMLNS_IFACE
 from zeroinstall import SafeException
 

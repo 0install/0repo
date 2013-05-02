@@ -4,7 +4,7 @@
 from __future__ import print_function
 
 import os, shutil, hashlib, collections
-from os.path import join, dirname, basename, abspath
+from os.path import join, dirname, abspath
 
 from zeroinstall.injector.handler import Handler
 from zeroinstall.injector import model, fetch
