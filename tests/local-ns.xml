@@ -1,0 +1,17 @@
+<?xml version="1.0" ?>
+<interface xmlns="http://zero-install.sourceforge.net/2004/injector/interface"
+	   xmlns:foo='http://mynamespace/foo'>
+  <name>hello</name>
+  <summary>prints hello</summary>
+  <group>
+    <command name='run' path='run.sh'>
+      <foo:test>
+	<foo:test xmlns:foo='http://myother/foo'/>
+      </foo:test>
+    </command>
+    <requires interface='http://foo'>
+      <bar:test xmlns:bar='http://ns/bar'/>
+    </requires>
+    <implementation id="sha1=003" version="0.3"/>
+  </group>
+</interface>

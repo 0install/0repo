@@ -1,0 +1,9 @@
+<?xml version="1.0" ?>
+<interface xmlns="http://zero-install.sourceforge.net/2004/injector/interface">
+  <name>hello</name>
+  <summary>prints hello</summary>
+  <group main='main'>
+    <command name='run' path='run.sh'/>
+    <implementation id="sha1=002" version="0.2"/>
+  </group>
+</interface>

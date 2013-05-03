@@ -23,7 +23,7 @@
       <runner interface="http://repo.roscidus.com/python/python"/>
     </command>
 
-    <command name="test" path="tests/test0repo.py">
+    <command name="test" path="tests/runall.py">
       <runner interface="http://repo.roscidus.com/python/python"/>
       <executable-in-path name="0repo"/>
     </command>

@@ -1,0 +1,13 @@
+<?xml version="1.0" ?>
+<interface xmlns="http://zero-install.sourceforge.net/2004/injector/interface">
+  <name>hello</name>
+  <summary>prints hello</summary>
+  <description>
+    Hello, local.
+  </description>
+  <homepage>http://test/hello.html</homepage>
+  <feed-for interface='http://test/hello.xml'/>
+  <group main='hello'>
+    <implementation id="sha1=002" version="0.2"/>
+  </group>
+</interface>

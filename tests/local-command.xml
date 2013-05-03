@@ -1,0 +1,18 @@
+<?xml version="1.0" ?>
+<interface xmlns="http://zero-install.sourceforge.net/2004/injector/interface"
+	   xmlns:myns='http://mynamespace/foo'>
+  <name>hello</name>
+  <summary>prints hello</summary>
+  <description>
+    Hello, local.
+  </description>
+  <homepage>http://test/hello.html</homepage>
+  <feed-for interface='http://test/hello.xml'/>
+  <group myns:bob='bob'>
+    <command name='run' path='run.sh'/>
+    <requires interface='http://foo'>
+      <environment name='TESTING' value='true' mode='replace'/>
+    </requires>
+    <implementation id="sha1=003" version="0.3" x='x' y:z='z' xmlns:y='yns'/>
+  </group>
+</interface>
