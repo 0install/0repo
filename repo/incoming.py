@@ -6,12 +6,13 @@ from __future__ import print_function
 import os, subprocess
 from io import BytesIO
 from os.path import join, dirname, basename, relpath
+from xml.dom import minidom, Node
 
 from zeroinstall.injector import qdom, model, gpg
 from zeroinstall.injector.namespaces import XMLNS_IFACE
 from zeroinstall import SafeException
 
-from repo import paths, archives, scm
+from repo import paths, archives, scm, merge
 
 def get_feed_url(root, path):
 	uri = root.attrs.get('uri', None)
@@ -104,9 +105,11 @@ def process(config, xml_file, delete_on_success):
 			with open(feed_path + '.new', 'wb') as stream:
 				stream.write(xml_text[:sig_index])
 			os.rename(feed_path + '.new', feed_path)
+		elif new_file:
+			create_from_local(master, feed_path, xml_file)
 		else:
-			# Merge into feed
-			subprocess.check_call([os.environ['ZEROPUBLISH'], "--add-from", xml_file, feed_path])
+			# Merge into existing feed
+			merge.merge_files(master, feed_path, xml_file)
 
 		# Commit
 		if new_file:
@@ -126,7 +129,8 @@ def process(config, xml_file, delete_on_success):
 		print(ex)
 		print("Error updating feed {feed}; rolling-back...".format(feed = xml_file))
 		if new_file:
-			os.unlink(feed_path)
+			if os.path.exists(feed_path):
+				os.unlink(feed_path)
 			if did_git_add:
 				subprocess.check_call(['git', 'rm', '--', git_path], cwd = 'feeds')
 		else:
@@ -162,3 +166,33 @@ def process_incoming_dir(config):
 		print('No .xml files in "incoming" directory (nothing to process)')
 	
 	return messages
+
+def create_from_local(master_feed_url, master_feed, new_impls_feed):
+	with open(new_impls_feed, 'rb') as stream:
+		doc = minidom.parse(stream)
+
+	root = doc.documentElement
+	root.setAttribute('uri', master_feed_url)
+
+	to_remove = []
+	for child in root.childNodes:
+		if child.localName == 'feed-for' and child.namespaceURI == XMLNS_IFACE:
+			# Remove <feed-for>
+			to_remove.append(child)
+
+			# Remove any preceeding commments too
+			node = child
+			while node.previousSibling:
+				node = node.previousSibling
+				if node.nodeType == Node.COMMENT_NODE or \
+				   (node.nodeType == Node.TEXT_NODE and node.nodeValue.strip() == ''):
+					to_remove.append(node)
+				else:
+					break
+
+	for node in to_remove:
+		root.removeChild(node)
+	
+	with open(master_feed + '.new', 'wb') as stream:
+		doc.writexml(stream)
+	os.rename(master_feed + '.new', master_feed)

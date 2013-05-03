@@ -32,10 +32,6 @@
       <version before="3" not-before="2.7"/>
     </requires>
 
-    <requires interface="http://0install.net/2006/interfaces/0publish">
-      <executable-in-var name="ZEROPUBLISH"/>
-    </requires>
-
     <requires interface="http://0install.net/2007/interfaces/ZeroInstall.xml">
       <environment insert="" mode="prepend" name="PYTHONPATH"/>
       <version not-before="2.2"/>
