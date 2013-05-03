@@ -223,7 +223,8 @@ def merge(master_doc, local_doc):
 		group.appendChild(new_impl)
 
 def merge_files(master_feed_url, master_feed, new_impls_feed):
-	"""Add each implementation in new_impls_feed to master_feed."""
+	"""Add each implementation in new_impls_feed to master_feed.
+	Return the new XML (not written)"""
 	with open(master_feed, 'rb') as stream:
 		master_doc = minidom.parse(stream)
 
@@ -232,4 +233,4 @@ def merge_files(master_feed_url, master_feed, new_impls_feed):
 
 	merge(master_doc, new_impls_doc)
 
-	formatting.write_doc(master_doc, master_feed)
+	return formatting.format_doc(master_doc)

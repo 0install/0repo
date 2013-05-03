@@ -89,27 +89,33 @@ def process(config, xml_file, delete_on_success):
 	else:
 		scm.ensure_no_uncommitted_changes(feed_path)
 
+	# Calculate new XML
+	new_file = not os.path.exists(feed_path)
+	if import_master:
+		assert new_file
+		new_xml = xml_text[:sig_index]
+	elif new_file:
+		new_xml = create_from_local(master, xml_file)
+	else:
+		# Merge into existing feed
+		new_xml = merge.merge_files(master, feed_path, xml_file)
+		if new_xml is None:
+			print("Already this into merged {feed}; skipping".format(feed = feed_path))
+			return
+
 	# Step 2 : upload archives to hosting
 
 	processed_archives = archives.process_archives(config, incoming_dir = dirname(xml_file), feed = feed)
 
 	# Step 3 : merge XML into feeds directory
 
-	new_file = not os.path.exists(feed_path)
 	git_path = relpath(feed_path, 'feeds')
 	did_git_add = False
 
 	try:
-		if import_master:
-			assert new_file
-			with open(feed_path + '.new', 'wb') as stream:
-				stream.write(xml_text[:sig_index])
-			os.rename(feed_path + '.new', feed_path)
-		elif new_file:
-			create_from_local(master, feed_path, xml_file)
-		else:
-			# Merge into existing feed
-			merge.merge_files(master, feed_path, xml_file)
+		with open(feed_path + '.new', 'wb') as stream:
+			stream.write(new_xml)
+		os.rename(feed_path + '.new', feed_path)
 
 		# Commit
 		if new_file:
@@ -167,7 +173,7 @@ def process_incoming_dir(config):
 	
 	return messages
 
-def create_from_local(master_feed_url, master_feed, new_impls_feed):
+def create_from_local(master_feed_url, new_impls_feed):
 	with open(new_impls_feed, 'rb') as stream:
 		doc = minidom.parse(stream)
 
@@ -193,4 +199,4 @@ def create_from_local(master_feed_url, master_feed, new_impls_feed):
 	for node in to_remove:
 		root.removeChild(node)
 	
-	formatting.write_doc(doc, master_feed)
+	return formatting.format_doc(doc)

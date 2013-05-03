@@ -2,6 +2,7 @@
 # See the README file for details, or visit http://0install.net.
 
 import os
+from StringIO import StringIO
 
 from xml.dom import Node
 
@@ -31,11 +32,12 @@ def format_node(node, indent):
 	if elems:
 		node.appendChild(doc.createTextNode(indent))
 
-def write_doc(doc, path):
+def format_doc(doc):
+	"""Note: modifies 'doc'."""
 	format_node(doc.documentElement, "\n")
 
-	with open(path + '.new', 'wb') as stream:
-		stream.write(b'<?xml version="1.0" ?>\n')
-		doc.documentElement.writexml(stream)
-		stream.write(b'\n')
-	os.rename(path + '.new', path)
+	b = StringIO()
+	b.write(b'<?xml version="1.0" ?>\n')
+	doc.documentElement.writexml(b)
+	b.write(b'\n')
+	return b.getvalue()
