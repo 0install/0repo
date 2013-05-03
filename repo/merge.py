@@ -5,6 +5,7 @@ from xml.dom import minidom, XMLNS_NAMESPACE, Node
 
 from zeroinstall import SafeException
 from zeroinstall.injector.namespaces import XMLNS_IFACE
+from zeroinstall.injector import model
 
 import namespace, formatting
 
@@ -18,10 +19,12 @@ def childNodes(parent, namespaceURI = None, localName = None):
 		if localName is None or x.localName == localName:
 			yield x
 
+requires_names = frozenset(['requires', 'restricts'] + list(model.binding_names))
+
 class Context:
 	def __init__(self, impl):
 		self.attribs = {}		# (ns, localName) -> value
-		self.requires = []
+		self.requires = []		# Actually, requires, restricts and bindings
 		self.commands = {}		# (name, version-expr) -> <command>
 
 		node = impl
@@ -34,15 +37,14 @@ class Context:
 			if node.nodeName == 'group':
 				# We don't care about <requires> or <command> inside <implementation>;
 				# they'll get copied over anyway
-				for x in childNodes(node, XMLNS_IFACE, 'requires'):
-					self.requires.append(x)
-				for x in childNodes(node, XMLNS_IFACE, 'restricts'):
-					self.requires.append(x)
-				for x in childNodes(node, XMLNS_IFACE, 'command'):
-					command_name = (x.getAttribute('name'), x.getAttribute('if-0install-version'))
-					if command_name not in self.commands:
-						self.commands[command_name] = x
-					# (else the existing definition on the child should be used)
+				for x in childNodes(node, XMLNS_IFACE):
+					if x.localName in requires_names:
+						self.requires.append(x)
+					elif x.localName == 'command':
+						command_name = (x.getAttribute('name'), x.getAttribute('if-0install-version'))
+						if command_name not in self.commands:
+							self.commands[command_name] = x
+						# (else the existing definition on the child should be used)
 			node = node.parentNode
 			if node.nodeName != 'group':
 				break
@@ -74,6 +76,7 @@ def find_groups(parent):
 		for y in find_groups(x):
 			yield y
 
+# XXX text nodes??
 def nodesEqual(a, b):
 	assert a.nodeType == Node.ELEMENT_NODE
 	assert b.nodeType == Node.ELEMENT_NODE
@@ -83,24 +86,24 @@ def nodesEqual(a, b):
 
 	if a.nodeName != b.nodeName:
 		return False
-	
+
 	a_attrs = set(["%s %s" % (name, value) for name, value in a.attributes.itemsNS()])
 	b_attrs = set(["%s %s" % (name, value) for name, value in b.attributes.itemsNS()])
 
 	if a_attrs != b_attrs:
 		#print "%s != %s" % (a_attrs, b_attrs)
 		return False
-	
+
 	a_children = list(childNodes(a))
 	b_children = list(childNodes(b))
 
 	if len(a_children) != len(b_children):
 		return False
-	
+
 	for a_child, b_child in zip(a_children, b_children):
 		if not nodesEqual(a_child, b_child):
 			return False
-	
+
 	return True
 
 def score_subset(group, impl):

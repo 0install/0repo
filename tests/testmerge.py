@@ -1,7 +1,7 @@
-import sys, os, tempfile, StringIO
+import sys, os, StringIO
 from zeroinstall.injector.namespaces import XMLNS_IFACE
-from zeroinstall.injector.reader import InvalidInterface
-from zeroinstall.injector import model, reader, qdom
+from zeroinstall.injector import model, qdom
+from zeroinstall.support import xmltools
 import unittest
 from xml.dom import minidom
 
@@ -9,7 +9,7 @@ ByteIO = StringIO.StringIO
 
 sys.path.insert(0, '..')
 
-from repo import merge
+from repo import merge, formatting
 
 header = """<?xml version="1.0" ?>
 <interface xmlns="http://zero-install.sourceforge.net/2004/injector/interface"
@@ -32,10 +32,40 @@ def do_merge(master_xml, new_impl_path):
 	master_doc = minidom.parse(ByteIO(master_xml))
 	with open(new_impl_path, 'rb') as stream:
 		new_impl_doc = minidom.parse(stream)
-	
+
 	merge.merge(master_doc, new_impl_doc)
 
 	return master_doc.toxml(encoding = 'utf-8')
+
+def check_merge(master, new, expected):
+	master_doc = minidom.parseString(header + master + footer)
+	new_doc = minidom.parseString(header + new + footer)
+	merge.merge(master_doc, new_doc)
+
+	expected_doc = minidom.parseString(header + expected + footer)
+
+	def remove_boring(doc):
+		for node in list(doc.documentElement.childNodes):
+			if node.localName in ('name', 'summary', 'description'):
+				doc.documentElement.removeChild(node)
+	remove_boring(master_doc)
+	remove_boring(expected_doc)
+
+	formatting.format_node(master_doc.documentElement, "\n")
+	formatting.format_node(expected_doc.documentElement, "\n")
+
+	master_doc.normalize()
+	expected_doc.normalize()
+
+	if xmltools.nodes_equal(master_doc.documentElement, expected_doc.documentElement):
+		return
+
+	actual = master_doc.documentElement.toxml()
+	expected = expected_doc.documentElement.toxml()
+
+	assert actual != expected
+
+	raise Exception("Failed.\n\nExpected:\n{}\nActual:\n{}".format(expected, actual))
 
 local_file = os.path.join(os.path.dirname(__file__), 'local.xml')
 local_file_req = os.path.join(os.path.dirname(__file__), 'local-req.xml')
@@ -63,7 +93,7 @@ class TestMerge(unittest.TestCase):
 	def testMergeTwice(self):
 		try:
 			once = do_merge(header + "<implementation id='sha1=123' version='1'/>" + footer, local_file)
-			twice = do_merge(once, local_file)
+			do_merge(once, local_file)
 			assert 0
 		except Exception as ex:
 			assert 'Duplicate ID' in str(ex)
@@ -127,7 +157,7 @@ class TestMerge(unittest.TestCase):
 		assert deps[0].interface == 'http://foo', deps[0]
 
 		assert len(minidom.parseString(master_xml).documentElement.getElementsByTagNameNS(XMLNS_IFACE, 'group')) == 2
-	
+
 		# Again, but with the groups the other way around
 		master_xml = do_merge(header + """\n
   <group>
@@ -145,6 +175,22 @@ class TestMerge(unittest.TestCase):
 		assert deps[0].interface == 'http://foo', deps[0]
 
 		assert len(minidom.parseString(master_xml).documentElement.getElementsByTagNameNS(XMLNS_IFACE, 'group')) == 2
+
+	def testMergeBindings(self):
+		check_merge("""\
+<group>
+  <binding foo='bar'/>
+  <implementation id='sha1=123' version='1'/>
+</group>""", """\
+<group>
+  <binding foo='bar'/>
+  <implementation id='sha1=234' version='2'/>
+</group>""", """\
+<group>
+  <binding foo="bar"/>
+  <implementation id="sha1=123" version="1"/>
+  <implementation id="sha1=234" version="2"/>
+</group>""")
 
 	def testMergeNS(self):
 		master_xml = do_merge(header + footer, local_file_ns)
@@ -183,7 +229,7 @@ class TestMerge(unittest.TestCase):
 		assert len(new_root.getElementsByTagNameNS(XMLNS_IFACE, 'group')) == 2
 		assert len(new_root.getElementsByTagNameNS(XMLNS_IFACE, 'requires')) == 1
 		assert len(new_root.getElementsByTagNameNS(XMLNS_IFACE, 'command')) == 1
-	
+
 		# We create a new top-level group inside this one, as we can't share the test command
 		master_xml = do_merge(header + """
   <group>
@@ -204,7 +250,7 @@ class TestMerge(unittest.TestCase):
 		assert len(new_root.getElementsByTagNameNS(XMLNS_IFACE, 'group')) == 2
 		assert len(new_root.getElementsByTagNameNS(XMLNS_IFACE, 'requires')) == 2
 		assert len(new_root.getElementsByTagNameNS(XMLNS_IFACE, 'command')) == 2
-	
+
 		# We share the <requires> and override the <command>
 		master_xml = do_merge(header + """
   <group>
@@ -246,7 +292,7 @@ class TestMerge(unittest.TestCase):
 		assert len(new_root.getElementsByTagNameNS(XMLNS_IFACE, 'group')) == 1
 		assert len(new_root.getElementsByTagNameNS(XMLNS_IFACE, 'requires')) == 1
 		assert len(new_root.getElementsByTagNameNS(XMLNS_IFACE, 'command')) == 1
-	
+
 	def testMerge2(self):
 		master_xml = do_merge(header + """
   <group license="OSI Approved :: GNU Lesser General Public License (LGPL)" main="0launch">
@@ -295,7 +341,7 @@ class TestMerge(unittest.TestCase):
 
 		assert feed.implementations['sha1=001'].main == "run.sh"
 		assert feed.implementations['sha1=002'].main == "run.sh"
-	
+
 	def testMergeIf0installVersion(self):
 		master_xml = do_merge(header + """
   <group>
