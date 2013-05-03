@@ -29,6 +29,10 @@ def get_feed_url(root, path):
 	else:
 		raise SafeException("Missing <feed-for>/uri in " + path)
 
+def get_last_commit(feed_path):
+	"""Get the (subject, XML) of the last commit."""
+	return subprocess.check_output(['git', 'log', '-n', '1', '--pretty=format:%s%n%b', '--', feed_path], cwd = 'feeds').split('\n',1)
+
 def process(config, xml_file, delete_on_success):
 	# Step 1 : check everything looks sensible, reject if not
 
@@ -89,8 +93,18 @@ def process(config, xml_file, delete_on_success):
 	else:
 		scm.ensure_no_uncommitted_changes(feed_path)
 
+	# Calculate commit message
+	if import_master:
+		action = 'Imported {file}'.format(file = basename(xml_file))
+	else:
+		versions = set(i.get_version() for i in feed.implementations.values())
+		action = 'Added {name} {versions}'.format(name = feed.get_name(), versions = ', '.join(versions))
+	commit_msg = '%s\n\n%s' % (action, xml_text.encode('utf-8'))
+
 	# Calculate new XML
 	new_file = not os.path.exists(feed_path)
+	git_path = relpath(feed_path, 'feeds')
+
 	if import_master:
 		assert new_file
 		new_xml = xml_text[:sig_index]
@@ -98,10 +112,15 @@ def process(config, xml_file, delete_on_success):
 		new_xml = create_from_local(master, xml_file)
 	else:
 		# Merge into existing feed
-		new_xml = merge.merge_files(master, feed_path, xml_file)
-		if new_xml is None:
-			print("Already this into merged {feed}; skipping".format(feed = feed_path))
-			return
+		try:
+			new_xml = merge.merge_files(master, feed_path, xml_file)
+		except merge.DuplicateIDException as ex:
+			# Did we already import this XML? Compare with the last Git log entry.
+			msg, previous_commit_xml = get_last_commit(git_path)
+			if previous_commit_xml == xml_text:
+				print("Already merged this into {feed}; skipping".format(feed = feed_path))
+				return msg
+			raise ex
 
 	# Step 2 : upload archives to hosting
 
@@ -109,7 +128,6 @@ def process(config, xml_file, delete_on_success):
 
 	# Step 3 : merge XML into feeds directory
 
-	git_path = relpath(feed_path, 'feeds')
 	did_git_add = False
 
 	try:
@@ -123,12 +141,6 @@ def process(config, xml_file, delete_on_success):
 			did_git_add = True
 
 		# (this must be last in the try block)
-		if import_master:
-			action = 'Imported {file}'.format(file = basename(xml_file))
-		else:
-			versions = set(i.get_version() for i in feed.implementations.values())
-			action = 'Added {name} {versions}'.format(name = feed.get_name(), versions = ', '.join(versions))
-		commit_msg = '%s\n\n%s' % (action, xml_text.encode('utf-8'))
 		scm.commit('feeds', [git_path], commit_msg, key = config.GPG_SIGNING_KEY)
 	except Exception as ex:
 		# Roll-back (we didn't commit to Git yet)

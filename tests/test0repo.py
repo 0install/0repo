@@ -162,6 +162,14 @@ class Test0Repo(unittest.TestCase):
 		ex = test_invalid(orig_data.replace('version="1"', 'version="1-pre"'))
 		assert "Version number must end in a digit (got 1-pre)" in ex, ex
 
+		# Import twice with identical XML
+		out = run_repo(['add', join(mydir, 'test-2.xml')])
+		assert 'Already merged this into feeds/tests/test.xml; skipping' in out, out
+
+		# Import twice with non-identical XML
+		ex = test_invalid(orig_data.replace('only', 'ONLY'))
+		assert 'Duplicate ID sha1new=4f860b217bb94723ad6af9062d25dc7faee6a7ae' in ex, ex
+
 		# Import pre-existing feed
 		update_config('CONTRIBUTOR_GPG_KEYS = None', 'CONTRIBUTOR_GPG_KEYS = set()')
 
@@ -175,7 +183,6 @@ class Test0Repo(unittest.TestCase):
 
 		out = run_repo(['add', join(mydir, 'imported.xml')])
 		assert os.path.exists(join('public', 'tests', 'imported.xml'))
-
 
 	def testRegister(self):
 		out = run_repo(['create', 'my-repo', 'Test Key for 0repo'])

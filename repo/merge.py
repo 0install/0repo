@@ -11,6 +11,9 @@ import namespace, formatting
 
 ns = namespace.Namespace()
 
+class DuplicateIDException(SafeException):
+	pass
+
 def childNodes(parent, namespaceURI = None, localName = None):
 	for x in parent.childNodes:
 		if x.nodeType != Node.ELEMENT_NODE: continue
@@ -172,7 +175,7 @@ def merge(master_doc, local_doc):
 	def check_unique(elem):
 		impl_id = impl.getAttribute("id")
 		if impl_id in known_ids:
-			raise SafeException("Duplicate ID " + impl_id)
+			raise DuplicateIDException("Duplicate ID " + impl_id)
 		known_ids.add(impl_id)
 
 	for impl in find_impls(master_doc.documentElement):

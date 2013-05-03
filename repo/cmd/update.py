@@ -38,5 +38,5 @@ def do_update(config, messages = None):
 				stream.write(data)
 
 	if not messages:
-		messages.append('0repo update')
+		messages = ['0repo update']
 	config.upload_public_dir(files, message = ', '.join(messages))
