@@ -76,35 +76,73 @@ def find_groups(parent):
 		for y in find_groups(x):
 			yield y
 
-# XXX text nodes??
-def nodesEqual(a, b):
-	assert a.nodeType == Node.ELEMENT_NODE
-	assert b.nodeType == Node.ELEMENT_NODE
+def _iter_child_nodes_skipping_ws(elem):
+	text_so_far = ""
+	for node in elem.childNodes:
+		if node.nodeType in (Node.TEXT_NODE, Node.CDATA_SECTION_NODE):
+			text_so_far += node.data.strip()
+		else:
+			if text_so_far:
+				yield elem.ownerDocument.createTextNode(text_so_far)
+				text_so_far = ""
+			yield node
 
-	if a.namespaceURI != b.namespaceURI:
-		return False
+	if text_so_far:
+		yield elem.ownerDocument.createTextNode(text_so_far)
 
-	if a.nodeName != b.nodeName:
-		return False
+	yield None
 
-	a_attrs = set(["%s %s" % (name, value) for name, value in a.attributes.itemsNS()])
-	b_attrs = set(["%s %s" % (name, value) for name, value in b.attributes.itemsNS()])
+def _compare_children(a, b):
+	"""@rtype: bool"""
+	ai = _iter_child_nodes_skipping_ws(a)
+	bi = _iter_child_nodes_skipping_ws(b)
 
-	if a_attrs != b_attrs:
-		#print "%s != %s" % (a_attrs, b_attrs)
-		return False
+	while True:
+		ae = next(ai)
+		be = next(bi)
+		if ae == be == None:
+			return True
 
-	a_children = list(childNodes(a))
-	b_children = list(childNodes(b))
+		if ae is None or be is None:
+			return False
 
-	if len(a_children) != len(b_children):
-		return False
-
-	for a_child, b_child in zip(a_children, b_children):
-		if not nodesEqual(a_child, b_child):
+		if not nodes_equal(ae, be):
 			return False
 
 	return True
+
+def nodes_equal(a, b):
+	"""Compare two DOM nodes.
+	Warning: only supports documents containing elements, comments, text
+	nodes and attributes (will crash on processing instructions, etc).
+	Strips whitespace from text nodes (except the initial a, b nodes).
+	@rtype: bool"""
+	if a.nodeType != b.nodeType:
+		return False
+
+	if a.nodeType == Node.ELEMENT_NODE:
+		if a.namespaceURI != b.namespaceURI:
+			return False
+
+		if a.nodeName != b.nodeName:
+			return False
+
+		a_attrs = set([(name, value) for name, value in a.attributes.itemsNS()])
+		b_attrs = set([(name, value) for name, value in b.attributes.itemsNS()])
+
+		if a_attrs != b_attrs:
+			#print "%s != %s" % (a_attrs, b_attrs)
+			return False
+
+		return _compare_children(a, b)
+	elif a.nodeType in (Node.TEXT_NODE, Node.CDATA_SECTION_NODE):
+		return a.data == b.data
+	elif a.nodeType == Node.DOCUMENT_NODE:
+		return _compare_children(a, b)
+	elif a.nodeType == Node.COMMENT_NODE:
+		return a.nodeValue == b.nodeValue
+	else:
+		assert 0, ("Unknown node type", a)
 
 def score_subset(group, impl):
 	"""Returns (is_subset, goodness)"""
@@ -116,12 +154,12 @@ def score_subset(group, impl):
 	for name_expr, g_command in group.commands.iteritems():
 		if name_expr not in impl.commands:
 			return (0,)		# Group sets a command the impl doesn't want
-		if nodesEqual(g_command, impl.commands[name_expr]):
+		if nodes_equal(g_command, impl.commands[name_expr]):
 			# Prefer matching commands to overriding them
 			matching_commands += 1
 	for g_req in group.requires:
 		for i_req in impl.requires:
-			if nodesEqual(g_req, i_req): break
+			if nodes_equal(g_req, i_req): break
 		else:
 			return (0,)		# Group adds a requires that the impl doesn't want
 	# Score result so we get groups that have all the same requires/commands first, then ones with all the same attribs
@@ -182,7 +220,7 @@ def merge(master_doc, local_doc):
 				old_command = None
 			else:
 				old_command = group_context.commands.get(name_expr, None)
-			if not (old_command and nodesEqual(old_command, new_command)):
+			if not (old_command and nodes_equal(old_command, new_command)):
 				new_commands.append(ns.import_node(master_doc, new_command))
 
 		# If we have additional requirements or commands, we'll need to create a subgroup and add them
@@ -193,7 +231,7 @@ def merge(master_doc, local_doc):
 			#group_context = Context(group)
 			for x in new_impl_context.requires:
 				for y in group_context.requires:
-					if nodesEqual(x, y): break
+					if nodes_equal(x, y): break
 				else:
 					req = ns.import_node(master_doc, x)
 					#print "Add", req

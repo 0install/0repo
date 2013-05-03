@@ -9,8 +9,11 @@ except ImportError:
 	cov = None
 	print "Coverage module not found. Skipping coverage report."
 else:
-	cov = coverage.coverage(source = ['repo'])
-	cov.start()
+	if len(sys.argv) > 1:
+		cov = None
+	else:
+		cov = coverage.coverage(source = ['repo'])
+		cov.start()
 
 testLoader = unittest.TestLoader()
 
@@ -36,5 +39,4 @@ if not a.wasSuccessful():
 
 if cov:
 	cov.stop()
-	#cov.html_report(directory = 'covhtml')
-cov.report()
+	cov.report()

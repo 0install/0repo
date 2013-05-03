@@ -76,7 +76,7 @@ local_file_main_and_command = os.path.join(os.path.dirname(__file__), 'local-mai
 local_file_zi13 = os.path.join(os.path.dirname(__file__), 'zeroinstall-injector-1.3.xml')
 
 def tap(s):
-	#print s
+	print s
 	return s
 
 class TestMerge(unittest.TestCase):
@@ -105,7 +105,7 @@ class TestMerge(unittest.TestCase):
 		assert master.implementations['sha1=002'].requires == []
 
 	def testMergeLocalReq(self):
-		master = parse(tap(do_merge(header + "<group x='x'>\n    <implementation id='sha1=123' version='1'/>\n  </group>" + footer, local_file_req)))
+		master = parse(do_merge(header + "<group x='x'>\n    <implementation id='sha1=123' version='1'/>\n  </group>" + footer, local_file_req))
 		assert master.url == 'http://test/hello.xml', master
 		assert len(master.implementations) == 2
 		deps = master.implementations['sha1=003'].requires
@@ -189,6 +189,25 @@ class TestMerge(unittest.TestCase):
 <group>
   <binding foo="bar"/>
   <implementation id="sha1=123" version="1"/>
+  <implementation id="sha1=234" version="2"/>
+</group>""")
+
+	def testMergeText(self):
+		check_merge("""\
+<group>
+  <binding>One</binding>
+  <implementation id='sha1=123' version='1'/>
+</group>""", """\
+<group>
+  <binding>Two</binding>
+  <implementation id='sha1=234' version='2'/>
+</group>""", """\
+<group>
+  <binding>One</binding>
+  <implementation id="sha1=123" version="1"/>
+</group>
+<group>
+  <binding>Two</binding>
   <implementation id="sha1=234" version="2"/>
 </group>""")
 
