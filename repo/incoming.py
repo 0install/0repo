@@ -12,7 +12,7 @@ from zeroinstall.injector import qdom, model, gpg
 from zeroinstall.injector.namespaces import XMLNS_IFACE
 from zeroinstall import SafeException
 
-from repo import paths, archives, scm, merge
+from repo import paths, archives, scm, merge, formatting
 
 def get_feed_url(root, path):
 	uri = root.attrs.get('uri', None)
@@ -193,6 +193,4 @@ def create_from_local(master_feed_url, master_feed, new_impls_feed):
 	for node in to_remove:
 		root.removeChild(node)
 	
-	with open(master_feed + '.new', 'wb') as stream:
-		doc.writexml(stream)
-	os.rename(master_feed + '.new', master_feed)
+	formatting.write_doc(doc, master_feed)

@@ -1,10 +1,12 @@
-import os
+# Copyright (C) 2013, Thomas Leonard
+# See the README file for details, or visit http://0install.net.
+
 from xml.dom import minidom, XMLNS_NAMESPACE, Node
 
 from zeroinstall import SafeException
 from zeroinstall.injector.namespaces import XMLNS_IFACE
 
-import namespace
+import namespace, formatting
 
 ns = namespace.Namespace()
 
@@ -18,7 +20,6 @@ def childNodes(parent, namespaceURI = None, localName = None):
 
 class Context:
 	def __init__(self, impl):
-		doc = impl.ownerDocument
 		self.attribs = {}		# (ns, localName) -> value
 		self.requires = []
 		self.commands = {}		# (name, version-expr) -> <command>
@@ -228,6 +229,4 @@ def merge_files(master_feed_url, master_feed, new_impls_feed):
 
 	merge(master_doc, new_impls_doc)
 
-	with open(master_feed + '.new', 'wb') as stream:
-		master_doc.writexml(stream)
-	os.rename(master_feed + '.new', master_feed)
+	formatting.write_doc(master_doc, master_feed)
