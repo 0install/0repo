@@ -70,9 +70,13 @@ ARCHIVES_BASE_URL = REPOSITORY_BASE_URL + "archives/"
 # If None, they will be deleted after upload.
 LOCAL_ARCHIVES_BACKUP_DIR = "archive-backups/"
 
-# At what URL under ARCHIVES_BASE_URL should this file/archive be served?
-# Note that there may be multiple archives/files for a single version, so you probably want to
-# keep archive_basename in the final URL.
+# At what URL under ARCHIVES_BASE_URL should this NEW file/archive be served?
+#
+# Note: Changing this does not affect archives which have already been uploaded;
+#	to relocate an existing archive, edit archives.db instead.
+#
+# Note: There may be multiple archives/files for a single version, so you
+#	probably want to keep archive_basename in the final URL.
 def get_archive_rel_url(archive_basename, impl):
 	# Example 1 (default)		e.g. http://.../myprog-1.0.tar.bz2
 	return archive_basename
