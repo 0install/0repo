@@ -100,6 +100,19 @@ If you've been managing a set of feeds without 0repo, you can import them into i
 
 The feeds will be added to the `feeds` directory, with any signatures removed (the signature will be stored in the Git commit message). 0repo looks at the `uri` attribute in the XML to decide which of the registered repositories to use.
 
+Note: Any archives referenced in the feeds will not be imported or managed by 0repo. It will simply continue
+using the existing URL.
+
+If you get it wrong and want to retry, just revert `/feeds` (which is version controlled with Git) to the previous state. e.g.
+
+    $ cd feeds
+    $ git tag before-import
+    $ 0repo add .../*.xml
+    [ Problem ]
+    $ git reset --hard before-import
+    [ Fix problem ]
+    $ 0repo add .../*.xml
+
 
 Adding a release
 ----------------
@@ -125,13 +138,27 @@ If the archives are to be stored outside of the repository (e.g. an existing
 3rd-party release), you can just include the full URL in the XML file.
 
 On the other hand, if you wish to store the release archives in the repository,
-use a relative href on the `<archive>` element and place the archive in the
-same directory as your XML. e.g.
+use a simple name (with no "/" characters) as the href on the `<archive>`
+element and place the archive in the same directory as your new XML. e.g.
 
     <archive extract="someprog-1.2" href="someprog-1.2.tar.gz" size="87942"/>
 
+Then run `0repo add` on the XML to import it into the repository.
+
 0repo will upload the archive to the repository's file hosting (using the command
 configured in `0repo-config.py`) and insert the full URL into the generated feed.
+
+0repo keeps track of which files have been uploaded where in the `/archives.db`
+file. This is a plain text file which you can edit manually if needed. It
+should always correspond to the state of the remote file hosting. Each time you
+use 0repo to update the public feeds, it looks up the archive URLs in this file
+to generate the full URLs in `/public`.
+
+For example, to migrate all your archives to a new server:
+
+1. Copy all the files from the old server to the new one.
+2. Do a search-and-replace in `archives.db` to give the new locations.
+3. Run `0repo update` to update the public feeds.
 
 
 The generated files
@@ -177,6 +204,31 @@ the user.
 For other edits (e.g. adding a `<package-implementation>` or adding a missing
 dependency to an already-released version), the contributor sends a Git pull
 request. The repository owner merges the pull request and runs 0repo.
+
+
+Repository files
+----------------
+
+Here are the technical details about what files are in the repository and what
+kind of manual editing is safe:
+
+- `/incoming` is just a temporary holding area for new files. It should normally
+  be empty, and you can freely delete anything from here.
+
+- `/archives.db` is 0repo's idea of what files are on the remote file hosting server.
+  If you move files around on the server, you should update this file to record the
+  new information. You must not delete entries from here that are referenced by feeds
+  under `/feeds`, otherwise 0repo won't be able to generate the public feeds.
+
+- `/feeds` is the state of the feeds in your repository. You can edit these freely.
+  Changes are tracked under Git, and you'll need to commit any changes you make (0repo
+  will refuse to update a feed which has uncommitted changes). You can use `git revert`,
+  `git reset`, etc to back out changes.
+
+- `/public` contains the generated files. It can be regenerated if lost. 0repo does not
+  resign files if the new file would be otherwise identical to the existing file, and does
+  not overwrite style-sheets, etc. However, you may wish to keep important state in here,
+  so 0repo will never delete it itself and will restrict itself to updating the feeds.
 
 
 Auditing
