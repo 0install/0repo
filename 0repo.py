@@ -9,5 +9,9 @@ version = '0.1'
 try:
 	cmd.main(sys.argv)
 except SafeException as ex:
+	import logging
+	if logging.getLogger().isEnabledFor(logging.INFO):
+		raise
+
 	print(ex)
 	sys.exit(1)

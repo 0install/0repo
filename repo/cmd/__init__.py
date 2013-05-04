@@ -6,6 +6,7 @@ from __future__ import print_function
 import argparse
 import os
 import sys
+import logging
 from os.path import join, dirname, abspath
 
 from zeroinstall import SafeException
@@ -13,6 +14,7 @@ from repo import archives
 
 def main(argv):
 	parser = argparse.ArgumentParser(description='Manage a 0install repository.')
+	parser.add_argument('--verbose', '-v', help='more verbose output', action='count')
 	subparsers = parser.add_subparsers(dest='subcommand')
 
 	parser_import = subparsers.add_parser('add', help='import pre-existing feeds into 0repo')
@@ -33,6 +35,14 @@ def main(argv):
 		argv = argv + ['update']
 
 	args = parser.parse_args(argv[1:])
+
+	if args.verbose == 1:
+		logging.getLogger().setLevel(logging.INFO)
+	elif args.verbose > 1:
+		logging.getLogger().setLevel(logging.DEBUG)
+	
+	logging.info("Starting 0repo")
+
 	cmd = __import__('repo.cmd.' + args.subcommand, globals(), locals(), [args.subcommand], 0)
 	cmd.handle(args)
 
