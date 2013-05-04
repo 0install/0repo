@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.abspath('..'))
 test_gpghome = join(mydir, 'test-gpghome')
 
 from repo.cmd import main
-from repo import archives
+from repo import archives, registry
 
 gpg.ValidSig.is_trusted = lambda self, domain = None: True
 
@@ -51,6 +51,15 @@ def update_config(old, new):
 
 	if os.path.exists('0repo-config.pyc'):
 		os.unlink('0repo-config.pyc')
+
+def test_invalid(xml):
+	with open('test.xml', 'wt') as stream:
+		stream.write(xml)
+	try:
+		run_repo(['add', 'test.xml'])
+		assert 0, 'Not rejected'
+	except SafeException as ex:
+		return str(ex)
 
 class Test0Repo(unittest.TestCase):
 	def setUp(self):
@@ -118,9 +127,32 @@ class Test0Repo(unittest.TestCase):
 		self.assertEqual(XMLNS_IFACE, feed.uri)
 		self.assertEqual("http://example.com/myrepo/tests/test.xml", feed.attrs['uri'])
 
+		# Check invalid archives are rejected
+		with open(join(mydir, 'test-2.xml'), 'rt') as stream:
+			test2_orig = stream.read()
+		ex = test_invalid(test2_orig.replace('href="test-2.tar.bz2"', 'href=""'))
+		assert "Missing href attribute on <archive>" in ex, ex
+
+		ex = test_invalid(test2_orig.replace('href="test-2.tar.bz2"', 'href=".tar.bz2"'))
+		assert ex == "Illegal archive name '.tar.bz2'", ex
+
+		ex = test_invalid(test2_orig.replace('href="test-2.tar.bz2"', 'href="foo bar"'))
+		assert ex == "Illegal archive name 'foo bar'", ex
+
+		ex = test_invalid(test2_orig.replace('href="test-2.tar.bz2"', 'href="foo&#xa;bar"'))
+		assert ex == "Illegal archive name 'foo\nbar'", ex
+
+		ex = test_invalid(test2_orig)
+		assert "test-2.tar.bz2' not found" in ex, ex
+
+		shutil.copyfile(join(mydir, 'test-2.tar.bz2'), 'test-2.tar.bz2')
+
+		ex = test_invalid(test2_orig.replace("sha256new='RPUJPV", "sha256new='RPV"))
+		assert 'Incorrect manifest -- archive is corrupted' in ex, ex
+
 		# Now add some local archives
-		shutil.copyfile(join(mydir, 'test-2.xml'), join('incoming', 'test-2.xml'))
 		shutil.copyfile(join(mydir, 'test-2.tar.bz2'), join('incoming', 'test-2.tar.bz2'))
+		shutil.copyfile(join(mydir, 'test-2.xml'), join('incoming', 'test-2.xml'))
 		out = run_repo([])
 
 		self.assertEqual([], os.listdir('incoming'))
@@ -138,20 +170,12 @@ class Test0Repo(unittest.TestCase):
 			stream.seek(0)
 
 			feed = model.ZeroInstallFeed(qdom.parse(stream))
-		impl2 = feed.implementations['sha1new=290eb133e146635fe37713fd58174324a16d595f']
+		impl2 = feed.implementations['version2']
 		self.assertEqual(stored_archive.url, impl2.download_sources[0].url)
 
 		# Check invalid feeds
 		with open(join(mydir, 'test-1.xml'), 'rt') as stream:
 			orig_data = stream.read()
-		def test_invalid(xml):
-			with open('test.xml', 'wt') as stream:
-				stream.write(xml)
-			try:
-				run_repo(['add', 'test.xml'])
-				assert 0, 'Not rejected'
-			except SafeException as ex:
-				return str(ex)
 
 		ex = test_invalid(orig_data.replace('license', 'LICENSE'))
 		assert "Missing 'license' attribute in" in ex, ex
@@ -170,6 +194,18 @@ class Test0Repo(unittest.TestCase):
 		ex = test_invalid(orig_data.replace('only', 'ONLY'))
 		assert 'Duplicate ID sha1new=4f860b217bb94723ad6af9062d25dc7faee6a7ae' in ex, ex
 
+		# Re-add the same archive
+		with open('test.xml', 'wt') as stream:
+			stream.write(test2_orig.replace('version2', 'version3'))
+		out = run_repo(['add', 'test.xml'])
+		assert 'Updated public/tests/test.xml' in out, out
+
+		# Re-add a different archive
+		with open('test-2.tar.bz2', 'ab') as stream:
+			stream.write(b'!')
+		ex = test_invalid(test2_orig.replace('version2', 'version4'))
+		assert "A different archive with basename 'test-2.tar.bz2' is already in the repository" in ex, ex
+
 		# Import pre-existing feed
 		update_config('CONTRIBUTOR_GPG_KEYS = None', 'CONTRIBUTOR_GPG_KEYS = set()')
 
@@ -185,6 +221,8 @@ class Test0Repo(unittest.TestCase):
 		assert os.path.exists(join('public', 'tests', 'imported.xml'))
 
 	def testRegister(self):
+		self.assertEqual(None, registry.lookup("http://example.com/myrepo/foo.xml", missing_ok = True))
+
 		out = run_repo(['create', 'my-repo', 'Test Key for 0repo'])
 		assert not out
 		os.chdir('my-repo')
@@ -197,6 +235,15 @@ class Test0Repo(unittest.TestCase):
 		os.chdir(mydir)
 		out = run_repo(['add', 'test-1.xml'])
 		assert "Updated public/tests/test.xml" in out, out
+
+		reg = registry.lookup("http://example.com/myrepo/foo.xml")
+		assert reg['type'] == 'local'
+
+		try:
+			reg = registry.lookup("http://example.com/notmyrepo/foo.xml")
+			assert 0
+		except SafeException as ex:
+			assert 'No registered repository for' in str(ex), ex
 
 if __name__ == '__main__':
 	unittest.main()

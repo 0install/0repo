@@ -3,7 +3,7 @@
 
 from __future__ import print_function
 
-import os, shutil, hashlib, collections
+import os, shutil, hashlib, collections, re
 from os.path import join, basename, dirname, abspath
 
 from zeroinstall.injector.handler import Handler
@@ -13,6 +13,8 @@ from zeroinstall.support import tasks
 from zeroinstall.zerostore import Store
 
 from repo import paths
+
+valid_simple_name = re.compile(r'^[^. \n/][^ \n/]*$')
 
 class Archive(object):
 	def __init__(self, source_path, rel_url):
@@ -52,7 +54,7 @@ def get_sha1(path):
 			sha1.update(got)
 	return sha1.hexdigest()
 
-def process_method(config, incoming_dir, impl, method):
+def process_method(config, incoming_dir, impl, method, required_digest):
 	archives = []
 
 	if not isinstance(method, model.Recipe):
@@ -71,11 +73,8 @@ def process_method(config, incoming_dir, impl, method):
 			has_external_archives = True
 			continue		# Hosted externally
 
-		if archive.startswith('.'):
-			raise SafeException("Archive name {name} starts with '.'".format(name = archive))
-
-		if ':' in archive:
-			raise SafeException("Archive name {name} contains ':'".format(name = archive))
+		if not valid_simple_name.match(archive):
+			raise SafeException("Illegal archive name '{name}'".format(name = archive))
 
 		archive_path = join(incoming_dir, archive)
 		if not os.path.isfile(archive_path):
@@ -104,7 +103,7 @@ def process_method(config, incoming_dir, impl, method):
 		# Check archives unpack to give the correct digests
 		fetcher = TestFetcher()
 
-		blocker = fetcher.cook(impl.id, method, fetcher.config.stores, dry_run = True, may_use_mirror = False)
+		blocker = fetcher.cook(required_digest, method, fetcher.config.stores, dry_run = True, may_use_mirror = False)
 		tasks.wait_for_blocker(blocker)
 	# should we download external archives and test them too?
 
@@ -145,14 +144,35 @@ class ArchiveDB:
 			basename = basename,
 			db = self.path))
 
+def pick_digest(impl):
+	from zeroinstall.zerostore import manifest, parse_algorithm_digest_pair
+	best = None
+	for digest in impl.digests:
+		alg_name, digest_value = parse_algorithm_digest_pair(digest)
+		alg = manifest.algorithms.get(alg_name, None)
+		if alg and (best is None or best.rating < alg.rating):
+			best = alg
+			required_digest = digest
+
+	if best is None:
+		if not impl.digests:
+			raise SafeException(_("No <manifest-digest> given for '%(implementation)s' version %(version)s") %
+					{'implementation': impl.feed.get_name(), 'version': impl.get_version()})
+		raise SafeException(_("Unknown digest algorithms '%(algorithms)s' for '%(implementation)s' version %(version)s") %
+				{'algorithms': impl.digests, 'implementation': impl.feed.get_name(), 'version': impl.get_version()})
+
+	return required_digest
+
 def process_archives(config, incoming_dir, feed):
 	"""feed is the parsed XML being processed. Any archives are in 'incoming_dir'."""
 
+	# Pick a digest to check (maybe we should check all of them?)
 	# Find required archives and check they're in 'incoming'
 	archives = []
 	for impl in feed.implementations.values():
+		required_digest = pick_digest(impl)
 		for method in impl.download_sources:
-			archives += process_method(config, incoming_dir, impl, method)
+			archives += process_method(config, incoming_dir, impl, method, required_digest)
 
 	# Upload archives
 	config.upload_archives(archives)

@@ -12,7 +12,8 @@
       </runner>
     </command>
 
-    <implementation id="sha1new=290eb133e146635fe37713fd58174324a16d595f" version="2">
+    <implementation id="version2" version="2">
+      <manifest-digest sha256new='RPUJPVVHEWJ673N736OCN7EMESYAEYM2UAY6OJ4MDFGUZ7QACLKA'/>
       <archive href="test-2.tar.bz2" size="185"/>
     </implementation>
   </group>
