@@ -230,6 +230,9 @@ kind of manual editing is safe:
   not overwrite style-sheets, etc. However, you may wish to keep important state in here,
   so 0repo will never delete it itself and will restrict itself to updating the feeds.
 
+- `/archive-backups` contains a copy of files uploaded to the file hosting. It is not
+  used by 0repo, but just provides a local backup copy for emergencies.
+
 
 Auditing
 --------

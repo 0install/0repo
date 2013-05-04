@@ -124,7 +124,7 @@ class Test0Repo(unittest.TestCase):
 		out = run_repo([])
 
 		self.assertEqual([], os.listdir('incoming'))
-		assert os.path.exists(join('archives', 'test-2.tar.bz2'))
+		assert os.path.exists(join('archive-backups', 'test-2.tar.bz2'))
 
 		archive_db = archives.ArchiveDB('archives.db')
 		stored_archive = archive_db.lookup('test-2.tar.bz2')
