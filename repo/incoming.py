@@ -90,9 +90,12 @@ def process(config, xml_file, delete_on_success):
 					os.unlink(xml_file)
 				return
 			else:
-				raise SafeException("Can't import '{url}'; non-identical feed {path} already exists".format(
-					url = feed.url,
-					path = feed_path))
+				raise SafeException("Can't import '{url}'; non-identical feed {path} already exists.\n\n"
+						    "To ADD new versions to this feed, remove the a 'uri' attribute from "
+						    "the root element in {new}.\n\n"
+						    "To EDIT the feed, just edit {path} directly rather than trying to add it again.\n\n"
+						    "To RE-UPLOAD the archives, do that manually and then edit archives.db."
+						    .format(url = feed.url, new = xml_file, path = feed_path))
 
 	# Calculate commit message
 	if import_master:
