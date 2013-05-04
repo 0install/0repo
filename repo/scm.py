@@ -9,7 +9,7 @@ from os.path import dirname
 from zeroinstall import SafeException
 
 def ensure_no_uncommitted_changes(path):
-	child = subprocess.Popen(["git", "diff", "--exit-code"], cwd = dirname(path), stdout = subprocess.PIPE, stderr = subprocess.STDOUT)
+	child = subprocess.Popen(["git", "diff", "--exit-code", "HEAD"], cwd = dirname(path), stdout = subprocess.PIPE, stderr = subprocess.STDOUT)
 	stdout, unused = child.communicate()
 	if child.returncode == 0:
 		return

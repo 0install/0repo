@@ -78,6 +78,8 @@ def process(config, xml_file, delete_on_success):
 	if not os.path.isdir(feed_dir):
 		os.makedirs(feed_dir)
 
+	scm.ensure_no_uncommitted_changes(feed_path)
+
 	if import_master:
 		if os.path.exists(feed_path):
 			with open(feed_path, 'rb') as stream:
@@ -91,8 +93,6 @@ def process(config, xml_file, delete_on_success):
 				raise SafeException("Can't import '{url}'; non-identical feed {path} already exists".format(
 					url = feed.url,
 					path = feed_path))
-	else:
-		scm.ensure_no_uncommitted_changes(feed_path)
 
 	# Calculate commit message
 	if import_master:
