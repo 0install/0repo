@@ -4,7 +4,8 @@
 from __future__ import print_function
 
 import os
-from os.path import join
+import subprocess
+from os.path import join, abspath
 
 from repo import incoming, build, catalog, cmd
 
@@ -20,6 +21,8 @@ def do_update(config, messages = None):
 	files += [f.public_rel_path for f in feeds]
 
 	files += catalog.write_catalog(config, feeds)
+
+	feeds_dir = abspath('feeds')
 
 	os.chdir('public')
 
@@ -40,3 +43,9 @@ def do_update(config, messages = None):
 	if not messages:
 		messages = ['0repo update']
 	config.upload_public_dir(files, message = ', '.join(messages))
+
+	out = subprocess.check_output(['git', 'status', '--porcelain'], cwd = feeds_dir).strip('\n')
+	if out:
+		print("Note: you have uncommitted changes in {feeds}:".format(feeds = feeds_dir))
+		print(out)
+		print("Run 'git commit -a' from that directory to save your changes.")
