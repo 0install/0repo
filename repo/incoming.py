@@ -43,6 +43,7 @@ def process(config, xml_file, delete_on_success):
 			stream.seek(0)
 			stream, sigs = gpg.check_stream(stream)
 		else:
+			sig_index = len(xml_text)
 			sigs = []
 		root = qdom.parse(BytesIO(xml_text))
 
