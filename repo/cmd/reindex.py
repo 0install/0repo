@@ -11,6 +11,8 @@ from os.path import join, abspath, relpath
 from repo import archives, cmd
 from repo.cmd import update
 
+from zeroinstall import SafeException
+
 def handle(args):
 	cmd.find_config()
 	config = cmd.load_config()
@@ -22,6 +24,7 @@ def handle(args):
 	os.chdir(config.LOCAL_ARCHIVES_BACKUP_DIR)
 
 	missing = set(db.entries.keys())
+	seen = set()
 
 	changes = 0
 	need_backup = False
@@ -34,7 +37,13 @@ def handle(args):
 
 			sha1 = archives.get_sha1(rel_path)
 			new = archives.StoredArchive(url = config.ARCHIVES_BASE_URL + rel_path, sha1 = sha1)
+
 			existing = db.entries.get(f, None)
+
+			if f in seen:
+				raise SafeException("{}: DUPLICATE basename - not allowed!\nFirst:{}\nSecord:{}".format(f, existing, new))
+			seen.add(f)
+
 			if existing:
 				missing.remove(f)
 
