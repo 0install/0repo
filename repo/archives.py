@@ -12,15 +12,16 @@ from zeroinstall import SafeException
 from zeroinstall.support import tasks
 from zeroinstall.zerostore import Store
 
-from repo import paths
+from repo import paths, urltest
 
 valid_simple_name = re.compile(r'^[^. \n/][^ \n/]*$')
 
 class Archive(object):
-	def __init__(self, source_path, rel_url):
+	def __init__(self, source_path, rel_url, size):
 		self.basename = basename(source_path)
 		self.source_path = source_path
 		self.rel_url = rel_url
+		self.size = size
 
 class TestStores:
 	stores = [Store("/tmp/")]
@@ -71,6 +72,11 @@ def process_method(config, incoming_dir, impl, method, required_digest):
 
 		if '/' in archive:
 			has_external_archives = True
+			url = archive
+			actual_size = urltest.get_size(url)
+			if actual_size != step.size:
+				raise SafeException("External archive {url} has size {actual}, but expected {expected} bytes".format(
+					url = url, actual = actual_size, expected = step.size))
 			continue		# Hosted externally
 
 		if not valid_simple_name.match(archive):
@@ -88,7 +94,7 @@ def process_method(config, incoming_dir, impl, method, required_digest):
 						    "already in the repository: {archive}".format(name = archive, archive = existing))
 		else:
 			archive_rel_url = paths.get_archive_rel_url(config, archive, impl)
-			stored_archive = Archive(archive_path, archive_rel_url)
+			stored_archive = Archive(archive_path, archive_rel_url, step.size)
 			actual_size = os.path.getsize(stored_archive.source_path)
 			if step.size != actual_size:
 				raise SafeException("Archive '{archive}' has size '{actual}', but XML says size should be {expected}".format(
@@ -163,9 +169,9 @@ def pick_digest(impl):
 
 	if best is None:
 		if not impl.digests:
-			raise SafeException(_("No <manifest-digest> given for '%(implementation)s' version %(version)s") %
+			raise SafeException("No <manifest-digest> given for '%(implementation)s' version %(version)s" %
 					{'implementation': impl.feed.get_name(), 'version': impl.get_version()})
-		raise SafeException(_("Unknown digest algorithms '%(algorithms)s' for '%(implementation)s' version %(version)s") %
+		raise SafeException("Unknown digest algorithms '%(algorithms)s' for '%(implementation)s' version %(version)s" %
 				{'algorithms': impl.digests, 'implementation': impl.feed.get_name(), 'version': impl.get_version()})
 
 	return required_digest
@@ -185,7 +191,12 @@ def process_archives(config, incoming_dir, feed):
 	config.upload_archives(archives)
 
 	# Test uploads
-	# TODO
+	for archive in archives:
+		url = config.ARCHIVES_BASE_URL + archive.rel_url
+		actual_size = urltest.get_size(url)
+		if actual_size != archive.size:
+			raise SafeException("Archive {url} has size {actual}, but expected {expected} bytes".format(
+				url = url, actual = actual_size, expected = archive.size))
 
 	for archive in archives:
 		sha1 = get_sha1(archive.source_path)

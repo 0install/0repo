@@ -1,7 +1,6 @@
 # Copyright (C) 2013, Thomas Leonard
 # See the README file for details, or visit http://0install.net.
 
-import os
 from StringIO import StringIO
 
 from xml.dom import Node

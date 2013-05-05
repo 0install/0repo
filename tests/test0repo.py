@@ -4,6 +4,7 @@ import shutil
 import subprocess
 import os, sys
 import imp
+import __builtin__
 from StringIO import StringIO
 
 from os.path import join
@@ -20,7 +21,48 @@ sys.path.insert(0, os.path.abspath('..'))
 test_gpghome = join(mydir, 'test-gpghome')
 
 from repo.cmd import main
-from repo import archives, registry, paths
+from repo import archives, registry, paths, urltest
+
+responses = {}		# Path -> Response
+
+class FakeResponse:
+	status = 200
+
+	def __init__(self, size):
+		self.size = size
+		if size < 0:
+			self.status = 404
+
+	def getheader(self, name):
+		assert name == 'Content-Length', name
+		return str(self.size)
+
+	def close(self):
+		pass
+
+class TestAPI:
+	@staticmethod
+	def upload(archives):
+		for archive in archives:
+			if 'INVALID' not in archive.rel_url:
+				responses['/myrepo/archives/' + archive.rel_url] = FakeResponse(archive.size)
+
+__builtin__.test0repo = TestAPI
+
+class FakeHttpLib:
+	class HTTPConnection:
+		def __init__(self, host, port):
+			pass
+
+		def request(self, method, path, headers):
+			assert method == 'HEAD'
+			self.path = path
+
+		def getresponse(self):
+			return responses.get(self.path, FakeResponse(-1))
+
+urltest.httplib = FakeHttpLib()
+urltest.ftplib = None
 
 gpg.ValidSig.is_trusted = lambda self, domain = None: True
 
@@ -85,6 +127,8 @@ class Test0Repo(unittest.TestCase):
 
 		imp.reload(basedir)
 
+		responses.clear()
+
 	def tearDown(self):
 		if '0repo-config' in sys.modules:
 			del sys.modules['0repo-config']
@@ -97,7 +141,8 @@ class Test0Repo(unittest.TestCase):
 		subprocess.check_call(['0repo', 'create', 'my-repo', 'Test Key for 0repo'])
 		os.chdir('my-repo')
 
-		update_config('raise Exception("No upload method specified: edit upload_archives() in 0repo-config.py")', 'pass')
+		update_config('raise Exception("No upload method specified: edit upload_archives() in 0repo-config.py")',
+				'test0repo.upload(archives)')
 
 		# Regenerate
 		out = run_repo([])
@@ -109,6 +154,7 @@ class Test0Repo(unittest.TestCase):
 
 		# Create a new feed (external archive)
 		shutil.copyfile(join(mydir, 'test-1.xml'), join('incoming', 'test-1.xml'))
+		responses['/downloads/test-1.tar.bz2'] = FakeResponse(419419)
 		out = run_repo([])
 		assert 'Processing test-1.xml' in out, repr(out)
 
@@ -144,6 +190,9 @@ class Test0Repo(unittest.TestCase):
 
 		ex = test_invalid(test2_orig)
 		assert "test-2.tar.bz2' not found" in ex, ex
+
+		ex = test_invalid(test2_orig.replace('href="test-2.tar.bz2"', 'href="http://example.com/INVALID"'))
+		assert "HTTP error: got status code 404" in ex, ex
 
 		shutil.copyfile(join(mydir, 'test-2.tar.bz2'), 'test-2.tar.bz2')
 
@@ -218,6 +267,7 @@ class Test0Repo(unittest.TestCase):
 
 		update_config('CONTRIBUTOR_GPG_KEYS = set()', 'CONTRIBUTOR_GPG_KEYS = {"3F52282D484EB9401EE3A66A6D66BDF4F467A18D"}')
 
+		responses['/imported-1.tar.bz2'] = FakeResponse(200)
 		out = run_repo(['add', join(mydir, 'imported.xml')])
 		assert os.path.exists(join('public', 'tests', 'imported.xml'))
 
@@ -234,6 +284,7 @@ class Test0Repo(unittest.TestCase):
 		assert "Already registered" in out, out
 
 		os.chdir(mydir)
+		responses['/downloads/test-1.tar.bz2'] = FakeResponse(419419)
 		out = run_repo(['add', 'test-1.xml'])
 		assert "Updated public/tests/test.xml" in out, out
 
@@ -250,7 +301,8 @@ class Test0Repo(unittest.TestCase):
 		out = run_repo(['create', 'my-repo', 'Test Key for 0repo'])
 		assert not out
 		os.chdir('my-repo')
-		update_config('raise Exception("No upload method specified: edit upload_archives() in 0repo-config.py")', 'pass')
+		update_config('raise Exception("No upload method specified: edit upload_archives() in 0repo-config.py")',
+				'test0repo.upload(archives)')
 
 		out = run_repo(['add', join(mydir, 'test-2.xml')])
 		assert 'Updated public/tests/test.xml' in out, out
@@ -277,9 +329,9 @@ class Test0Repo(unittest.TestCase):
 		assert 'Updated public/tests/test.xml' in out, out
 
 	def testGrouping(self):
-		a = archives.Archive('/tmp/a.tgz', 'a.tgz')
-		b = archives.Archive('/tmp/b.tgz', 'foo/sub/b.tgz')
-		c = archives.Archive('/tmp/c.tgz', 'foo/sub/c.tgz')
+		a = archives.Archive('/tmp/a.tgz', 'a.tgz', 0)
+		b = archives.Archive('/tmp/b.tgz', 'foo/sub/b.tgz', 0)
+		c = archives.Archive('/tmp/c.tgz', 'foo/sub/c.tgz', 0)
 		groups = {d: fs for d, fs in paths.group_by_target_url_dir([a, b, c])}
 		self.assertEqual(['', 'foo/sub'], sorted(groups))
 		self.assertEqual(['/tmp/a.tgz'], sorted(groups['']))

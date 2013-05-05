@@ -4,12 +4,10 @@
 from __future__ import print_function
 
 import os
-import subprocess
 import shutil
-from os.path import join, abspath, relpath
+from os.path import join, relpath
 
 from repo import archives, cmd
-from repo.cmd import update
 
 from zeroinstall import SafeException
 
