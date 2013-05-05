@@ -17,11 +17,12 @@ from repo import paths, urltest
 valid_simple_name = re.compile(r'^[^. \n/][^ \n/]*$')
 
 class Archive(object):
-	def __init__(self, source_path, rel_url, size):
+	def __init__(self, source_path, rel_url, size, incoming_path = None):
 		self.basename = basename(source_path)
 		self.source_path = source_path
 		self.rel_url = rel_url
 		self.size = size
+		self.incoming_path = incoming_path	# (used to delete from /incoming)
 
 class TestStores:
 	stores = [Store("/tmp/")]
@@ -94,7 +95,16 @@ def process_method(config, incoming_dir, impl, method, required_digest):
 						    "already in the repository: {archive}".format(name = archive, archive = existing))
 		else:
 			archive_rel_url = paths.get_archive_rel_url(config, archive, impl)
-			stored_archive = Archive(archive_path, archive_rel_url, step.size)
+
+			# Copy to archives directory
+
+			backup_dir = config.LOCAL_ARCHIVES_BACKUP_DIR	# note: may be relative; that's OK
+			backup_target_dir = join(backup_dir, dirname(archive_rel_url))
+			paths.ensure_dir(backup_target_dir)
+			copy_path = join(backup_dir, archive_rel_url)
+			shutil.copyfile(archive_path, copy_path)
+
+			stored_archive = Archive(abspath(copy_path), archive_rel_url, step.size, archive_path)
 			actual_size = os.path.getsize(stored_archive.source_path)
 			if step.size != actual_size:
 				raise SafeException("Archive '{archive}' has size '{actual}', but XML says size should be {expected}".format(
@@ -187,7 +197,7 @@ def process_archives(config, incoming_dir, feed):
 		for method in impl.download_sources:
 			archives += process_method(config, incoming_dir, impl, method, required_digest)
 
-	# Upload archives
+	# Copy to archives directory and upload
 	config.upload_archives(archives)
 
 	# Test uploads
@@ -203,26 +213,3 @@ def process_archives(config, incoming_dir, feed):
 		config.archive_db.add(archive.basename, config.ARCHIVES_BASE_URL + archive.rel_url, sha1)
 
 	return archives
-
-def finish_archives(config, archives, delete):
-	# Copy archives to backup dir if LOCAL_ARCHIVES_BACKUP_DIR is set.
-	# Then delete (if delete is True).
-
-	backup_dir = config.LOCAL_ARCHIVES_BACKUP_DIR
-	if backup_dir is not None:
-		# (note: may be relative; that's OK)
-		paths.ensure_dir(backup_dir)
-
-	for archive in archives:
-		assert archive.basename in config.archive_db.entries, archive
-
-		if backup_dir is None:
-			if delete:
-				os.unlink(archive.source_path)
-		else:
-			backup_target_dir = join(backup_dir, dirname(archive.rel_url))
-			paths.ensure_dir(backup_target_dir)
-			if delete:
-				os.rename(archive.source_path, join(backup_target_dir, archive.basename))
-			else:
-				shutil.copyfile(archive.source_path, join(backup_target_dir, archive.basename))

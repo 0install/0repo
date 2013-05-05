@@ -159,14 +159,11 @@ def process(config, xml_file, delete_on_success):
 			subprocess.check_call(['git', 'checkout', 'HEAD', '--', git_path], cwd = 'feeds')
 		raise
 
-	# Delete XML from incoming directory
+	# Delete XML and archives from incoming directory
 	if delete_on_success:
 		os.unlink(xml_file)
-
-	# Remove archives from incoming directory. Do this last, because it's
-	# easy to re-upload the archives without causing problems, but we can't
-	# reprocess once the archives have gone.
-	archives.finish_archives(config, processed_archives, delete_on_success)
+		for archive in processed_archives:
+			os.unlink(archive.incoming_path)
 
 	return commit_msg.split('\n', 1)[0]
 

@@ -66,8 +66,7 @@ def upload_public_dir(files, message):
 # managed by 0repo.
 ARCHIVES_BASE_URL = REPOSITORY_BASE_URL + "archives/"
 
-# Where to keep backups of the archives after uploading them.
-# If None, they will be deleted after upload.
+# Where to keep copies of the archives we upload.
 LOCAL_ARCHIVES_BACKUP_DIR = "archive-backups/"
 
 # At what URL under ARCHIVES_BASE_URL should this NEW file/archive be served?
@@ -89,12 +88,10 @@ def get_archive_rel_url(archive_basename, impl):
 
 # Upload these new archives to the file server.
 # For each archive in the list:
-#   archive.source_path = path to local archive to be uploaded
+#   archive.source_path = path to local archive to be uploaded (in LOCAL_ARCHIVES_BACKUP_DIR)
 #   archive.rel_url = result from get_archive_rel_url() above
 # If any target files already exist, overwrite them (we will retry if uploading
 # fails part way through).
-# If this function returns without an error, the archives will also be stored
-# under LOCAL_ARCHIVES_BACKUP_DIR (if set).
 def upload_archives(archives):
 	for dir_rel_url, files in paths.group_by_target_url_dir(archives):
 		# Example 1 : simple copy to local web-server directory
