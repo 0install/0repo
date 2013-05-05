@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.abspath('..'))
 test_gpghome = join(mydir, 'test-gpghome')
 
 from repo.cmd import main
-from repo import archives, registry
+from repo import archives, registry, paths
 
 gpg.ValidSig.is_trusted = lambda self, domain = None: True
 
@@ -154,6 +154,7 @@ class Test0Repo(unittest.TestCase):
 		shutil.copyfile(join(mydir, 'test-2.tar.bz2'), join('incoming', 'test-2.tar.bz2'))
 		shutil.copyfile(join(mydir, 'test-2.xml'), join('incoming', 'test-2.xml'))
 		out = run_repo([])
+		assert 'Updated public/tests/test.xml' in out, out
 
 		self.assertEqual([], os.listdir('incoming'))
 		assert os.path.exists(join('archive-backups', 'test-2.tar.bz2'))
@@ -275,6 +276,14 @@ class Test0Repo(unittest.TestCase):
 		out = run_repo(['update'])
 		assert 'Updated public/tests/test.xml' in out, out
 
+	def testGrouping(self):
+		a = archives.Archive('/tmp/a.tgz', 'a.tgz')
+		b = archives.Archive('/tmp/b.tgz', 'foo/sub/b.tgz')
+		c = archives.Archive('/tmp/c.tgz', 'foo/sub/c.tgz')
+		groups = {d: fs for d, fs in paths.group_by_target_url_dir([a, b, c])}
+		self.assertEqual(['', 'foo/sub'], sorted(groups))
+		self.assertEqual(['/tmp/a.tgz'], sorted(groups['']))
+		self.assertEqual(['/tmp/b.tgz', '/tmp/c.tgz'], sorted(groups['foo/sub']))
 
 if __name__ == '__main__':
 	unittest.main()

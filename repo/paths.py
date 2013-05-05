@@ -1,7 +1,7 @@
 # Copyright (C) 2013, Thomas Leonard
 # See the README file for details, or visit http://0install.net.
 
-from os.path import isabs
+from os.path import isabs, dirname
 import os
 import collections
 
@@ -14,7 +14,7 @@ def ensure_dir(path):
 def group_by_target_url_dir(archives):
 	results = collections.defaultdict(lambda: [])		# rel_url -> [basename]
 	for archive in archives:
-		results[archive.rel_url].append(archive.source_path)
+		results[dirname(archive.rel_url)].append(archive.source_path)
 	return results.items()
 
 def ensure_safe(rel_path):
