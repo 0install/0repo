@@ -29,6 +29,8 @@ def main(argv):
 
 	subparsers.add_parser('register', help='add this repository location to ~/.config/...')
 
+	subparsers.add_parser('reindex', help='update archives.db from archives directory')
+
 	subparsers.add_parser('update', help='process "incoming" and generate output files')
 
 	if len(argv) == 1:

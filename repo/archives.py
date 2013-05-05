@@ -125,10 +125,7 @@ class ArchiveDB:
 					assert key not in self.entries, key
 					self.entries[key] = StoredArchive(url, sha1)
 		else:
-			with open(path, 'wt') as stream:
-				stream.write("# Records the absolute URL of all known archives.\n"
-					     "# To relocate archives, edit this file to contain the new addresses and run '0repo'.\n"
-					     "# Each line is 'basename SHA1 URL'\n")
+			self.save_all()
 
 	def add(self, basename, url, sha1):
 		assert basename not in self.entries, basename
@@ -143,6 +140,16 @@ class ArchiveDB:
 		raise SafeException("Missing entry for {basename} in {db}; can't build feeds.".format(
 			basename = basename,
 			db = self.path))
+	
+	def save_all(self):
+		with open(self.path + '.new', 'wt') as stream:
+			stream.write("# Records the absolute URL of all known archives.\n"
+				     "# To relocate archives, edit this file to contain the new addresses and run '0repo'.\n"
+				     "# Each line is 'basename SHA1 URL'\n")
+
+			for basename, e in sorted(self.entries.items()):
+				stream.write('%s %s %s\n' % (basename, e.sha1, e.url))
+		os.rename(self.path + '.new', self.path)
 
 def pick_digest(impl):
 	from zeroinstall.zerostore import manifest, parse_algorithm_digest_pair

@@ -245,5 +245,36 @@ class Test0Repo(unittest.TestCase):
 		except SafeException as ex:
 			assert 'No registered repository for' in str(ex), ex
 
+	def testReindex(self):
+		out = run_repo(['create', 'my-repo', 'Test Key for 0repo'])
+		assert not out
+		os.chdir('my-repo')
+		update_config('raise Exception("No upload method specified: edit upload_archives() in 0repo-config.py")', 'pass')
+
+		out = run_repo(['add', join(mydir, 'test-2.xml')])
+		assert 'Updated public/tests/test.xml' in out, out
+
+		out = run_repo(['reindex'])
+		assert 'No changes found' in out, out
+
+		os.unlink('archives.db')
+
+		out = run_repo(['reindex'])
+		assert 'test-2.tar.bz2: added to database: http://example.com/myrepo/archives/test-2.tar.bz2' in out, out
+
+		os.mkdir(join("archive-backups", "subdir"))
+		os.rename(join("archive-backups", "test-2.tar.bz2"),
+			  join("archive-backups", "subdir", "test-2.tar.bz2"))
+
+		out = run_repo(['reindex'])
+		assert 'New URL: http://example.com/myrepo/archives/subdir/test-2.tar.bz2' in out, out
+		assert 'Old database saved as' in out, out
+		assert '(changes: 1)' in out, out
+		assert "Run '0repo update' to update public feeds." in out, out
+
+		out = run_repo(['update'])
+		assert 'Updated public/tests/test.xml' in out, out
+
+
 if __name__ == '__main__':
 	unittest.main()

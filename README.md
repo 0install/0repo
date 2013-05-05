@@ -100,8 +100,10 @@ If you've been managing a set of feeds without 0repo, you can import them into i
 
 The feeds will be added to the `feeds` directory, with any signatures removed (the signature will be stored in the Git commit message). 0repo looks at the `uri` attribute in the XML to decide which of the registered repositories to use.
 
-Note: Any archives referenced in the feeds will not be imported or managed by 0repo. It will simply continue
-using the existing URL.
+Note: Any archives referenced in the feeds will not be imported or managed by
+0repo. It will simply continue using the existing URL. See "Importing or
+reindexing archives" below if you want 0repo to track your existing archives
+(this is optional).
 
 If you get it wrong and want to retry, just revert `/feeds` (which is version controlled with Git) to the previous state. e.g.
 
@@ -159,6 +161,36 @@ For example, to migrate all your archives to a new server:
 1. Copy all the files from the old server to the new one.
 2. Do a search-and-replace in `archives.db` to give the new locations.
 3. Run `0repo update` to update the public feeds.
+
+
+Importing or reindexing archives
+--------------------------------
+
+You can update the `archives.db` file from the current state of the `archive-backups`
+directory using the `0repo reindex` command.
+
+For each file in `archive-backups`, 0repo will calculate the new URL as
+`config.ARCHIVES_BASE_URL` + relative path within the archives directory. It will also
+update the SHA1 sum.
+
+It displays a list of changes and additions made to the archive and, for changes, saves
+a copy of the old file. It does not automatically update the `public` directory; run
+`0repo update` afterwards to do that, if you're happy with the changes.
+
+For example:
+
+    $ 0repo reindex
+    test-2.tar.bz2:
+      Old URL: http://ftp.example.com/pub/archives/test-2.tar.bz2
+      New URL: http://example.com/myrepo/archives/test-2.tar.bz2
+    Old database saved as /home/me/repositories/test/archives.db.old
+    Updated /home/me/repositories/test/archives.db (changes: 1)
+    Run '0repo update' to update public feeds.
+
+TODO:
+
+- Replace matching absolute URLs with short names under `/feeds`.
+- Remove missing and unreferenced entries from the database.
 
 
 The generated files
@@ -219,6 +251,7 @@ kind of manual editing is safe:
   If you move files around on the server, you should update this file to record the
   new information. You must not delete entries from here that are referenced by feeds
   under `/feeds`, otherwise 0repo won't be able to generate the public feeds.
+  If necessary, you can regenerate `archives.db` from `archive-backups` using `0repo reindex`.
 
 - `/feeds` is the state of the feeds in your repository. You can edit these freely.
   Changes are tracked under Git, and you'll need to commit any changes you make (0repo
@@ -230,8 +263,9 @@ kind of manual editing is safe:
   not overwrite style-sheets, etc. However, you may wish to keep important state in here,
   so 0repo will never delete it itself and will restrict itself to updating the feeds.
 
-- `/archive-backups` contains a copy of files uploaded to the file hosting. It is not
-  used by 0repo, but just provides a local backup copy for emergencies.
+- `/archive-backups` contains a copy of files uploaded to the file hosting. It
+  is not read by 0repo in normal operation, but just provides a local backup
+  copy for emergencies.
 
 
 Auditing
