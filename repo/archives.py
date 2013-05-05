@@ -202,6 +202,7 @@ def process_archives(config, incoming_dir, feed):
 
 	# Test uploads
 	for archive in archives:
+		if config.ARCHIVES_BASE_URL.startswith('http://TESTING/'): continue
 		url = config.ARCHIVES_BASE_URL + archive.rel_url
 		actual_size = urltest.get_size(url)
 		if actual_size != archive.size:
