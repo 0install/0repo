@@ -221,6 +221,41 @@ has changed). You should commit your changes with `git commit`.
 To remove a feed, `git rm repo/feeds/FEED.xml` and run `0repo` again.
 
 
+Retracting a release
+--------------------
+
+If you make a release and then want to remove it, you have several options. You can
+edit the feed in the `feeds` directory and set the stability to `buggy`, e.g.
+
+    <implementation id="..." version="..." stability="buggy">
+
+Then run `0repo update` to push the new XML to the server. The release still exists,
+but 0install will avoid selecting it by default.
+
+If you've just made a release and want to remove it completely, you can `git revert`
+the commit that added it. Use `git log` to see the last log entry for your feed, e.g.
+
+    $ cd feeds
+    $ git log -n 1 myfeed.xml
+    commit e9dfc086bb19f6fb94dc22c27ac2c0e70fbcd5cf
+    Author: ...
+    Date:   ...
+    
+        Added myprog 1.3
+    
+        <?xml version="1.0"?>
+        ...
+
+Use `git revert e9dfc086bb19` (the ID in the "commit" line) to revert it, then `0repo update`
+to push the changes.
+
+If you want to remove an older version, `git revert` might not work. In that case, you'll have
+to edit the XML to remove the `<implementation>`s manually and then run `0repo update`.
+
+Either way, once you've pushed the updated XML, you can then remove the archive
+from the server and from the `archives.db` file.
+
+
 Running a shared repository
 ---------------------------
 
