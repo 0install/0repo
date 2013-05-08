@@ -142,7 +142,7 @@ class Test0Repo(unittest.TestCase):
 		os.chdir('my-repo')
 
 		update_config('raise Exception("No upload method specified: edit upload_archives() in 0repo-config.py")',
-				'test0repo.upload(archives)')
+				'return test0repo.upload(archives)')
 
 		# Regenerate
 		out = run_repo([])
@@ -302,7 +302,7 @@ class Test0Repo(unittest.TestCase):
 		assert not out
 		os.chdir('my-repo')
 		update_config('raise Exception("No upload method specified: edit upload_archives() in 0repo-config.py")',
-				'test0repo.upload(archives)')
+				'return test0repo.upload(archives)')
 
 		out = run_repo(['add', join(mydir, 'test-2.xml')])
 		assert 'Updated public/tests/test.xml' in out, out

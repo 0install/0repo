@@ -94,11 +94,25 @@ def get_archive_rel_url(archive_basename, impl):
 # fails part way through).
 def upload_archives(archives):
 	for dir_rel_url, files in paths.group_by_target_url_dir(archives):
-		# Example 1 : simple copy to local web-server directory
-		#archives_local_dir = "/home/me/public_html/archives/"
-		#subprocess.check_call(["cp"] + files + [join(archives_local_dir, dir_rel_url)])
-
+		# Delete this next line and all but one of the examples below.
 		raise Exception("No upload method specified: edit upload_archives() in 0repo-config.py")
+
+		# Example 1 : simple copy to local web-server directory
+		archives_local_dir = "/home/me/public_html/archives/"
+		subprocess.check_call(["cp"] + files + [join(archives_local_dir, dir_rel_url)])
+
+		# Example 2 : upload to SourceForge file release system
+		user = 'sf-user-name'
+		project = 'sf-project-name'
+		path = '/home/frs/project/{p}/{pr}/{project}/{dir_rel_url}/'.format(
+			p = project[0],
+			pr = project[:2],
+			project = project,
+			dir_rel_url = dir_rel_url)
+		cmd = ['rsync', '-avP', '--progress', '-e', 'ssh'] + files + \
+			[user + ',' + project + '@frs.sourceforge.net:' + path]
+		print ' '.join(cmd)
+		subprocess.check_call(cmd)
 
 
 #### Custom checks and rules ####
@@ -118,7 +132,7 @@ def check_new_impl(impl):
 
 	# Example: Must have a license
 	license = impl.metadata.get('license', None)
-	if license is None:
+	if not license:
 		return "Missing 'license' attribute"
 
 	# Example: License must be OSI approved

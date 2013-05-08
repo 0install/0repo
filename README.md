@@ -76,12 +76,16 @@ These are required:
 
 - `REPOSITORY_BASE_URL`: The base URL for the feeds
 - `ARCHIVES_BASE_URL`: The base URL for the archives
+- `GPG_SIGNING_KEY`: Should be already set to the key you specified
 
 These are optional:
 
-- Command to upload feeds to web hosting (not yet implemented)
-- Command to upload archives to archive hosting
-- GPG keys of trusted contributors (not yet implemented)
+- `CONTRIBUTOR_GPG_KEYS`: GPG keys of trusted contributors
+- `upload_public_dir`: Code to upload feeds to web hosting
+- `LOCAL_ARCHIVES_BACKUP_DIR`: Where to keep local copies of uploaded archives
+- `get_archive_rel_url`: Layout of your file server (e.g. a single directory or nested)
+- `check_new_impl`: Policy checks for new code (e.g. check license is present and acceptable)
+- `upload_archives`: Code to upload archives to archive hosting
 
 Finally, register this repository so that other tools can find it (you need to do this after setting `REPOSITORY_BASE_URL`):
 
