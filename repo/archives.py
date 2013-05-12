@@ -24,29 +24,6 @@ class Archive(object):
 		self.size = size
 		self.incoming_path = incoming_path	# (used to delete from /incoming)
 
-class TestStores:
-	stores = [Store("/tmp/")]
-
-class TestConfig:
-	def __init__(self):
-		self.handler = Handler()
-		self.stores = TestStores()
-
-class TestScheduler:
-	@tasks.async
-	def download(self, dl, timeout = None):
-		yield
-		assert dl.url.startswith("http://example.com/")
-		path = dl.url[len("http://example.com/"):]
-		with open(path, 'rb') as stream:
-			shutil.copyfileobj(stream, dl.tempfile)
-
-class TestFetcher(fetch.Fetcher):
-	def __init__(self):
-		fetch.Fetcher.__init__(self, TestConfig())
-
-	scheduler = TestScheduler()
-
 def get_sha1(path):
 	sha1 = hashlib.sha1()
 	with open(path, 'rb') as stream:
@@ -113,15 +90,16 @@ def process_method(config, incoming_dir, impl, method, required_digest):
 					expected = step.size))
 			archives.append(stored_archive)
 
-		step.url = "http://example.com/" + archive_path	# (just used below to test it)
+		step.url = os.path.abspath(archive_path)			# (just used below to test it)
 
-	if not has_external_archives:
 		# Check archives unpack to give the correct digests
-		fetcher = TestFetcher()
-
-		blocker = fetcher.cook(required_digest, method, fetcher.config.stores, dry_run = True, may_use_mirror = False)
-		tasks.wait_for_blocker(blocker)
-	# should we download external archives and test them too?
+		impl.feed.local_path = "/is-local-hack.xml"
+		try:
+			blocker = config.zconfig.fetcher.cook(required_digest, method,
+						config.zconfig.stores, impl_hint = impl, dry_run = True, may_use_mirror = False)
+			tasks.wait_for_blocker(blocker)
+		finally:
+			impl.feed.local_path = None
 
 	return archives
 

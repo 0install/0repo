@@ -9,6 +9,7 @@ import sys
 import logging
 from os.path import join, dirname, abspath
 
+import zeroinstall.injector.config
 from zeroinstall import SafeException
 from repo import archives
 
@@ -75,5 +76,7 @@ def load_config():
 			setattr(config, setting, value + '/')
 
 	config.archive_db = archives.ArchiveDB("archives.db")
+
+	config.zconfig = zeroinstall.injector.config.load_config()
 
 	return config

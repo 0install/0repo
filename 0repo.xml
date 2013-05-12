@@ -34,7 +34,7 @@
 
     <requires interface="http://0install.net/2007/interfaces/ZeroInstall.xml">
       <environment insert="" mode="prepend" name="PYTHONPATH"/>
-      <version not-before="2.2"/>
+      <version not-before="2.2-post"/>
     </requires>
 
     <implementation id="." version="0.2-post"/>
