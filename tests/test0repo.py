@@ -146,7 +146,7 @@ class Test0Repo(unittest.TestCase):
 
 		# Regenerate
 		out = run_repo([])
-		assert 'No .xml files in "incoming" directory (nothing to process)' in out, out
+		assert "Exported public key as 'public/keys/6D66BDF4F467A18D.gpg'" in out, out
 		assert os.path.exists(join('public', 'catalog.xml'))
 		assert os.path.exists(join('public', 'resources/catalog.xsl'))
 		assert os.path.exists(join('public', 'resources/catalog.css'))

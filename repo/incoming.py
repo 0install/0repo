@@ -182,7 +182,7 @@ def process_incoming_dir(config):
 			print("Processing", xml)
 			messages.append(process(config, os.path.join('incoming', xml), delete_on_success = True))
 	else:
-		print('No .xml files in "incoming" directory (nothing to process)')
+		pass #print('No .xml files in "incoming" directory (nothing to process)')
 	
 	return messages
 
