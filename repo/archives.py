@@ -6,11 +6,9 @@ from __future__ import print_function
 import os, shutil, hashlib, collections, re
 from os.path import join, basename, dirname, abspath
 
-from zeroinstall.injector.handler import Handler
-from zeroinstall.injector import model, fetch
+from zeroinstall.injector import model
 from zeroinstall import SafeException
 from zeroinstall.support import tasks
-from zeroinstall.zerostore import Store
 
 from repo import paths, urltest
 
