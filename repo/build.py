@@ -4,7 +4,7 @@
 from __future__ import print_function
 
 import os, subprocess, sys
-from os.path import join, dirname, relpath, basename
+from os.path import join, dirname, relpath, basename, abspath
 from xml.dom import minidom, Node
 import base64
 from collections import namedtuple
@@ -15,7 +15,7 @@ from zeroinstall import SafeException
 
 from repo import paths
 
-PublicFeed = namedtuple("PublicFeed", ["public_rel_path", "doc", "changed"])
+PublicFeed = namedtuple("PublicFeed", ["source_path", "public_rel_path", "doc", "changed"])
 
 feed_header = """<?xml version="1.0" ?>
 <?xml-stylesheet type='text/xsl' href='%s/feed.xsl'?>
@@ -127,7 +127,7 @@ def build_public_feeds(config):
 					if xmltools.nodes_equal(old_doc.documentElement, new_doc.documentElement):
 						#print("%s unchanged" % source_path)
 						changed = False
-				feeds.append(PublicFeed(public_rel_path, new_doc, changed))
+				feeds.append(PublicFeed(abspath(source_path), public_rel_path, new_doc, changed))
 
 	key_path = export_key(join('public', 'keys'), config.GPG_SIGNING_KEY)
 
