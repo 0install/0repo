@@ -256,6 +256,10 @@ class Test0Repo(unittest.TestCase):
 		ex = test_invalid(test2_orig.replace('version2', 'version4'))
 		assert "A different archive with basename 'test-2.tar.bz2' is already in the repository" in ex, ex
 
+		# Test a recipe
+		out = run_repo(['add', join(mydir, 'test-4.xml')])
+		assert "Updated public/tests/test.xml" in out, out
+
 		# Import pre-existing feed
 		update_config('CONTRIBUTOR_GPG_KEYS = None', 'CONTRIBUTOR_GPG_KEYS = set()')
 

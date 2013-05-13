@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<interface xmlns="http://zero-install.sourceforge.net/2004/injector/interface">
+  <name>test</name>
+  <summary>testing</summary>
+
+  <feed-for interface="http://example.com/myrepo/tests/test.xml"/>
+
+  <group license='Example only' released='2013-04-28'>
+    <implementation id="version4" version="4">
+      <manifest-digest sha256new='PGUFCJE7VW7LFX45BUNOL4UHABUL5I6GYNFKQ4ENOLLLCMHID2IA'/>
+      <recipe>
+	<archive href="test-2.tar.bz2" size="185"/>
+	<rename source='HelloWorld/main' dest='prog'/>
+      </recipe>
+    </implementation>
+  </group>
+</interface>

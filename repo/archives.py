@@ -92,6 +92,7 @@ def process_method(config, incoming_dir, impl, method, required_digest):
 
 		step.url = os.path.abspath(archive_path)			# (just used below to test it)
 
+	if not has_external_archives:
 		# Check archives unpack to give the correct digests
 		impl.feed.local_path = "/is-local-hack.xml"
 		try:
