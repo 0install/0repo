@@ -66,13 +66,13 @@ urltest.ftplib = None
 
 gpg.ValidSig.is_trusted = lambda self, domain = None: True
 
-def run_repo(args):
+def run_repo(args, stdin = ''):
 	oldcwd = os.getcwd()
 
 	old_stdout = sys.stdout
 	sys.stdout = StringIO()
 	try:
-		sys.stdin = StringIO('\n')	# (simulate a press of Return if needed)
+		sys.stdin = StringIO(stdin + '\n')	# (simulate pressing Return if needed)
 		main(['0repo'] + args)
 		return sys.stdout.getvalue()
 	finally:
@@ -202,7 +202,7 @@ class Test0Repo(unittest.TestCase):
 		# Now add some local archives
 		shutil.copyfile(join(mydir, 'test-2.tar.bz2'), join('incoming', 'test-2.tar.bz2'))
 		shutil.copyfile(join(mydir, 'test-2.xml'), join('incoming', 'test-2.xml'))
-		out = run_repo([])
+		out = run_repo([], stdin = 'n\n')		# (don't mark 0.1 as stable)
 		assert 'Updated public/tests/test.xml' in out, out
 
 		self.assertEqual([], os.listdir('incoming'))
@@ -246,9 +246,10 @@ class Test0Repo(unittest.TestCase):
 
 		# Re-add the same archive
 		with open('test.xml', 'wt') as stream:
-			stream.write(test2_orig.replace('version2', 'version3'))
-		out = run_repo(['add', 'test.xml'])
+			stream.write(test2_orig.replace('version2', 'version3').replace('version="2"', 'version="3"'))
+		out = run_repo(['add', 'test.xml'], stdin='y\n')	# (mark 0.2 as stable)
 		assert 'Updated public/tests/test.xml' in out, out
+		assert "The previous release, version 2, is still marked as 'testing'. Set to stable?" in out, out
 
 		# Re-add a different archive
 		with open('test-2.tar.bz2', 'ab') as stream:
@@ -257,7 +258,7 @@ class Test0Repo(unittest.TestCase):
 		assert "A different archive with basename 'test-2.tar.bz2' is already in the repository" in ex, ex
 
 		# Test a recipe
-		out = run_repo(['add', join(mydir, 'test-4.xml')])
+		out = run_repo(['add', join(mydir, 'test-4.xml')], stdin = 'n\n')
 		assert "Updated public/tests/test.xml" in out, out
 
 		# Import pre-existing feed
@@ -274,6 +275,17 @@ class Test0Repo(unittest.TestCase):
 		responses['/imported-1.tar.bz2'] = FakeResponse(200)
 		out = run_repo(['add', join(mydir, 'imported.xml')])
 		assert os.path.exists(join('public', 'tests', 'imported.xml'))
+
+		# Check stability levels
+		with open(join('public', 'tests', 'test.xml'), 'rb') as stream:
+			stream, sigs = gpg.check_stream(stream)
+			assert isinstance(sigs[0], gpg.ValidSig), sigs[0]
+			stream.seek(0)
+			feed = model.ZeroInstallFeed(qdom.parse(stream))
+		self.assertEqual(model.testing, feed.implementations["sha1new=4f860b217bb94723ad6af9062d25dc7faee6a7ae"].get_stability())
+		self.assertEqual(model.stable, feed.implementations['version2'].get_stability())
+		self.assertEqual(model.testing, feed.implementations['version3'].get_stability())
+		self.assertEqual(model.testing, feed.implementations['version4'].get_stability())
 
 	def testRegister(self):
 		self.assertEqual(None, registry.lookup("http://example.com/myrepo/foo.xml", missing_ok = True))

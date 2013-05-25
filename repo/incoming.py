@@ -33,6 +33,44 @@ def get_last_commit(feed_path):
 	"""Get the (subject, XML) of the last commit."""
 	return subprocess.check_output(['git', 'log', '-n', '1', '--pretty=format:%s%n%b', '--', feed_path], cwd = 'feeds').split('\n',1)
 
+def get_choice(options):
+	while True:
+		choice = raw_input('/'.join(options) + ': ').lower()
+		if not choice: continue
+		for o in options:
+			if o.lower().startswith(choice):
+				return o
+
+def ask_if_previous_still_testing(master_doc, new_version):
+	new_version_parsed = model.parse_version(new_version)
+	xml = master_doc.toxml(encoding = 'utf-8')
+	master = model.ZeroInstallFeed(qdom.parse(BytesIO(xml)))
+
+	previous_versions = [impl.version for impl in master.implementations.values() if impl.version < new_version_parsed]
+	if not previous_versions:
+		return
+
+	previous_version = max(previous_versions)
+
+	# (all the <implementations> with this version number)
+	previous_testing_impls = [impl for impl in master.implementations.values()
+					if impl.version == previous_version
+					and impl.upstream_stability == model.testing]
+
+	if not previous_testing_impls:
+		return
+
+	print("The previous release, version {version}, is still marked as 'testing'. Set to stable?".format(
+		version = model.format_version(previous_version)))
+	if get_choice(['Yes', 'No']) != 'Yes':
+		return
+
+	ids_to_change = frozenset(impl.id for impl in previous_testing_impls)
+
+	for impl in master_doc.getElementsByTagNameNS(XMLNS_IFACE, 'implementation'):
+		if impl.getAttribute('id') in ids_to_change:
+			impl.setAttribute('stability', 'stable')
+
 def process(config, xml_file, delete_on_success):
 	# Step 1 : check everything looks sensible, reject if not
 
@@ -117,7 +155,7 @@ def process(config, xml_file, delete_on_success):
 	else:
 		# Merge into existing feed
 		try:
-			new_xml = merge.merge_files(master, feed_path, xml_file)
+			new_doc = merge.merge_files(master, feed_path, xml_file)
 		except merge.DuplicateIDException as ex:
 			# Did we already import this XML? Compare with the last Git log entry.
 			msg, previous_commit_xml = get_last_commit(git_path)
@@ -126,11 +164,20 @@ def process(config, xml_file, delete_on_success):
 				return msg
 			raise ex
 
+		new_xml = None	# (will regenerate from new_doc below)
+
 	# Step 2 : upload archives to hosting
 
 	processed_archives = archives.process_archives(config, incoming_dir = dirname(xml_file), feed = feed)
 
 	# Step 3 : merge XML into feeds directory
+
+	# Prompt about existing testing versions
+	if new_xml is None:
+		new_versions = frozenset(impl.get_version() for impl in feed.implementations.values())
+		if len(new_versions) == 1:
+			ask_if_previous_still_testing(new_doc, list(new_versions)[0])
+		new_xml = formatting.format_doc(new_doc)
 
 	did_git_add = False
 
