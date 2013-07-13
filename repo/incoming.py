@@ -137,11 +137,14 @@ def process(config, xml_file, delete_on_success):
 
 	# Calculate commit message
 	if import_master:
-		action = 'Imported {file}'.format(file = basename(xml_file))
+		name = basename(xml_file)
+		if name == 'feed.xml':
+			name = basename(dirname(xml_file))
+		action = 'Imported {file}'.format(file = name)
 	else:
 		versions = set(i.get_version() for i in feed.implementations.values())
 		action = 'Added {name} {versions}'.format(name = feed.get_name(), versions = ', '.join(versions))
-	commit_msg = '%s\n\n%s' % (action, xml_text.encode('utf-8'))
+	commit_msg = '%s\n\n%s' % (action, xml_text.decode('utf-8'))
 
 	# Calculate new XML
 	new_file = not os.path.exists(feed_path)

@@ -41,9 +41,9 @@ def write_catalog(config, feeds):
 		cat_root.appendChild(elem)
 
 	catalog_file = join('public', 'catalog.xml')
-	with open(catalog_file + '.new', 'wt') as stream:
+	with open(catalog_file + '.new', 'wb') as stream:
 		stream.write(catalog_header)
-		cat_doc.documentElement.writexml(stream)
+		stream.write(cat_doc.documentElement.toxml(encoding = 'utf-8'))
 	os.rename(catalog_file + '.new', catalog_file)
 
 	return ['catalog.xml']
