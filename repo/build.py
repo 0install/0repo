@@ -62,8 +62,12 @@ def expand_relative_urls(config, parent):
 
 def generate_public_xml(config, source_xml_path):
 	"""Load source_xml_path and expand any relative URLs."""
-	with open(source_xml_path, 'rb') as stream:
-		doc = minidom.parse(stream)
+	try:
+		with open(source_xml_path, 'rb') as stream:
+			doc = minidom.parse(stream)
+	except:
+		print("Failed to process %s" % (source_xml_path))
+		raise
 
 	root = doc.documentElement
 	declared_iface = root.getAttribute('uri')
