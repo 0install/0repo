@@ -34,6 +34,10 @@ def main(argv):
 
 	subparsers.add_parser('update', help='process "incoming" and generate output files')
 
+	parser_proxy = subparsers.add_parser('proxy', help='run a http proxy which serves all repository URLs directly from the "public" directory')
+	parser_proxy.add_argument('-p', '--port', help='the port to run the HTTP proxy on', default=8080, type=int)
+
+
 	if len(argv) == 1:
 		argv = argv + ['update']
 
