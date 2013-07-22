@@ -30,13 +30,21 @@ def write_catalog(config, feeds):
 	cat_root.setAttributeNS(XMLNS_NAMESPACE, 'xmlns:c', XMLNS_CATALOG)
 	cat_root.setAttributeNS(XMLNS_NAMESPACE, 'xmlns', XMLNS_IFACE)
 
+	custom_tags = {}
+	for (name, ns, tags) in getattr(config, 'ADDITIONAL_CATALOG_TAGS', []):
+		cat_ns.register_namespace(ns, name)
+		cat_root.setAttributeNS(XMLNS_NAMESPACE, 'xmlns:' + name, ns)
+		custom_tags[ns] = tags
+
 	for feed in feeds:
 		feed_root = feed.doc.documentElement
 
 		elem = cat_doc.createElementNS(XMLNS_IFACE, "interface")
 		elem.setAttribute('uri', feed_root.getAttribute("uri"))
 		for feed_elem in feed_root.childNodes:
-			if feed_elem.namespaceURI == XMLNS_IFACE and feed_elem.localName in catalog_names:
+			ns = feed_elem.namespaceURI
+			if ((ns == XMLNS_IFACE and feed_elem.localName in catalog_names) or
+				(ns in custom_tags and feed_elem.localName in custom_tags[ns])):
 				elem.appendChild(cat_ns.import_node(cat_doc, feed_elem))
 		cat_root.appendChild(elem)
 
