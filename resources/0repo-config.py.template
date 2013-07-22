@@ -125,7 +125,7 @@ def check_new_impl(impl):
 	if not version[-1].isdigit():
 		return "Version number must end in a digit (got {version})".format(version = version)
 
-	# Example: Must has a release date
+	# Example: Must have a release date
 	released = impl.metadata.get('released', None)
 	if not released:
 		return "Missing 'released' attribute"
