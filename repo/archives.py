@@ -178,13 +178,17 @@ def process_archives(config, incoming_dir, feed):
 	config.upload_archives(archives)
 
 	# Test uploads
-	for archive in archives:
-		if config.ARCHIVES_BASE_URL.startswith('http://TESTING/'): continue
-		url = config.ARCHIVES_BASE_URL + archive.rel_url
+	def default_test(archive, url):
 		actual_size = urltest.get_size(url)
 		if actual_size != archive.size:
 			raise SafeException("Archive {url} has size {actual}, but expected {expected} bytes".format(
 				url = url, actual = actual_size, expected = archive.size))
+	
+	test_archive = getattr(config, 'check_uploaded_archive', default_test)
+
+	for archive in archives:
+		url = config.ARCHIVES_BASE_URL + archive.rel_url
+		test_archive(archive, url)
 
 	for archive in archives:
 		sha1 = get_sha1(archive.source_path)
