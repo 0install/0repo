@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 import os
+import traceback
 from repo import cmd
 
 from SimpleHTTPServer import SimpleHTTPRequestHandler
@@ -13,6 +14,9 @@ def handle(args):
 	config = cmd.load_config()
 
 	os.chdir("public")
+
+	# Only server files under this prefix
+	public_prefix = os.path.realpath(os.getcwd()) + os.path.sep
 
 	class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 		pass
@@ -32,6 +36,12 @@ def handle(args):
 
 				if self.path.startswith(config.REPOSITORY_BASE_URL):
 					rel_path = self.path[len(config.REPOSITORY_BASE_URL):]
+					full_path = os.path.realpath(os.path.abspath(rel_path))
+					if not full_path.startswith(public_prefix):
+						self.send_error(403, "Forbidden: %s" % rel_path)
+						raise Exception("Attempt to fetch file outside of '%s': %s'" %
+								(public_prefix, full_path))
+
 					try:
 						headers = [('Content-Length', os.stat(rel_path).st_size)]
 						send(open(rel_path), headers)
@@ -42,11 +52,10 @@ def handle(args):
 					stream = urllib2.urlopen(self.path)
 					send(stream, stream.headers.items())
 			except:
-				import traceback
 				traceback.print_exc()
 				self.send_response(500)
 
-	httpd = ThreadedHTTPServer(('', args.port), Proxy)
+	httpd = ThreadedHTTPServer(('127.0.0.1', args.port), Proxy)
 	print("To use:\nenv http_proxy='http://localhost:%s/' 0install [...]" % (args.port,))
 	try:
 		httpd.serve_forever()
