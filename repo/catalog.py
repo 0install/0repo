@@ -5,16 +5,17 @@ from __future__ import print_function
 
 import os
 from os.path import join
-from xml.dom.minidom import getDOMImplementation
+from xml.dom import minidom
 from xml.dom import XMLNS_NAMESPACE
 
 from zeroinstall.injector.namespaces import XMLNS_IFACE
+from zeroinstall.support import xmltools
 
-from . import namespace
+from . import namespace, build
 
 XMLNS_CATALOG = "http://0install.de/schema/injector/catalog"
 
-catalog_header = '''<?xml version="1.0" encoding="utf-8"?>
+catalog_header = b'''<?xml version="1.0" encoding="utf-8"?>
 <?xml-stylesheet type='text/xsl' href='resources/catalog.xsl'?>
 '''
 
@@ -24,7 +25,7 @@ def write_catalog(config, feeds):
 	cat_ns = namespace.Namespace()
 	cat_ns.register_namespace(XMLNS_CATALOG, "c")
 
-	impl = getDOMImplementation()
+	impl = minidom.getDOMImplementation()
 	cat_doc = impl.createDocument(XMLNS_CATALOG, "c:catalog", None)
 	cat_root = cat_doc.documentElement
 	cat_root.setAttributeNS(XMLNS_NAMESPACE, 'xmlns:c', XMLNS_CATALOG)
@@ -47,11 +48,20 @@ def write_catalog(config, feeds):
 				(ns in custom_tags and feed_elem.localName in custom_tags[ns])):
 				elem.appendChild(cat_ns.import_node(cat_doc, feed_elem))
 		cat_root.appendChild(elem)
-
+	
 	catalog_file = join('public', 'catalog.xml')
-	with open(catalog_file + '.new', 'wb') as stream:
-		stream.write(catalog_header)
-		stream.write(cat_doc.documentElement.toxml(encoding = 'utf-8'))
-	os.rename(catalog_file + '.new', catalog_file)
+
+	need_update = True
+	if os.path.exists(catalog_file):
+		with open(catalog_file, 'rb') as stream:
+			old_catalog = minidom.parse(stream)
+		need_update = not xmltools.nodes_equal(old_catalog.documentElement, cat_doc.documentElement)
+
+	if need_update:
+		new_data = build.sign_xml(config, catalog_header + cat_doc.documentElement.toxml(encoding = 'utf-8') + '\n')
+		with open(catalog_file + '.new', 'wb') as stream:
+			stream.write(new_data)
+		os.rename(catalog_file + '.new', catalog_file)
+		print("Updated catalog.xml")
 
 	return ['catalog.xml']
