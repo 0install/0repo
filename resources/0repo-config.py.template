@@ -181,3 +181,9 @@ def get_public_rel_path(feeds_rel_path):
 # right place automatically by Apache, you can set this to None and avoid
 # generating any symlinks.
 GPG_PUBLIC_KEY_DIRECTORY = "."
+
+# 0repo normally does an HTTP HEAD request to check that the archive has been
+# uploaded correctly. If your server doesn't support HEAD requests (e.g. Google
+# code), you might want to disable this check, or implement your own test instead:
+
+#def check_uploaded_archive(archive, url): pass
