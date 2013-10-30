@@ -74,6 +74,7 @@ local_file_command = os.path.join(os.path.dirname(__file__), 'local-command.xml'
 local_file_ns = os.path.join(os.path.dirname(__file__), 'local-ns.xml')
 local_file_main_and_command = os.path.join(os.path.dirname(__file__), 'local-main-and-command.xml')
 local_file_zi13 = os.path.join(os.path.dirname(__file__), 'zeroinstall-injector-1.3.xml')
+local_file_zi13_int = os.path.join(os.path.dirname(__file__), 'zeroinstall-injector-int-1.3.xml')
 
 def tap(s):
 	print s
@@ -331,6 +332,18 @@ class TestMerge(unittest.TestCase):
 
 		n_groups = len(doc.getElementsByTagName("group"))
 		assert n_groups == 2
+
+	def testMerge3(self):
+		master_xml = do_merge(header + """
+  <group license="OSI Approved :: GNU Lesser General Public License (LGPL)" main="0launch">
+    <command name="run" path="0launch"/>
+    <implementation id="sha1new=7d1ecfbd76a42d56f029f9d0c72e4ac26c8561de" released="2011-07-23" version="1.2"/>
+  </group>
+  """ + footer, local_file_zi13_int)
+		doc = minidom.parseString(master_xml)
+
+		n_commands = len(doc.getElementsByTagName("command"))
+		assert n_commands == 1
 
 	def testMergeMainAndCommand(self):
 		# Ensure the main attribute doesn't get promoted over the command

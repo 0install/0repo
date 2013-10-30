@@ -37,17 +37,16 @@ class Context:
 					ns.register_namespace(value, name[1])
 				elif name not in self.attribs:
 					self.attribs[name] = value
-			if node.nodeName == 'group':
-				# We don't care about <requires> or <command> inside <implementation>;
-				# they'll get copied over anyway
-				for x in childNodes(node, XMLNS_IFACE):
-					if x.localName in requires_names:
-						self.requires.append(x)
-					elif x.localName == 'command':
-						command_name = (x.getAttribute('name'), x.getAttribute('if-0install-version'))
-						if command_name not in self.commands:
-							self.commands[command_name] = x
-						# (else the existing definition on the child should be used)
+
+			for x in childNodes(node, XMLNS_IFACE):
+				if x.localName in requires_names:
+					self.requires.append(x)
+				elif x.localName == 'command':
+					command_name = (x.getAttribute('name'), x.getAttribute('if-0install-version'))
+					if command_name not in self.commands:
+						self.commands[command_name] = x
+					# (else the existing definition on the child should be used)
+
 			node = node.parentNode
 			if node.nodeName != 'group':
 				break
@@ -249,6 +248,11 @@ def merge(master_doc, local_doc):
 			group_context = Context(group)
 
 		new_impl = ns.import_node(master_doc, impl)
+
+		# Already copied to parent <group>
+		for x in list(childNodes(new_impl, XMLNS_IFACE)):
+			if x.localName in ('command', 'requires'):
+				new_impl.removeChild(x)
 
 		# Attributes might have been set on a parent group; move to the impl
 		for name in new_impl_context.attribs:

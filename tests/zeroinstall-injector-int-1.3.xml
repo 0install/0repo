@@ -1,0 +1,10 @@
+<?xml version="1.0" ?>
+<interface xmlns="http://zero-install.sourceforge.net/2004/injector/interface">
+  <name>ZeroInstall-Injector</name>
+  <summary>decentralised installation system</summary>
+  <group license="OSI Approved :: GNU Lesser General Public License (LGPL)" main="0launch">
+    <implementation id="sha1new=8056a5697cfb51590d7b4e5dfefe82c8f528251c" released="2011-09-18" version="1.3">
+      <command name="run" path="0launch"/>
+    </implementation>
+  </group>
+</interface>
