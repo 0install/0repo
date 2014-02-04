@@ -59,8 +59,8 @@ Then run "0repo create DIR KEY" to create the new repository (directory DIR
 will be created to hold the files and will be populated with an initial
 configuration).
 
-    $ 0repo create ~/repo 'John Smith'
-    $ cd ~/repo
+    $ 0repo create ~/repositories/myrepo 'John Smith'
+    $ cd ~/repositories/myrepo
 
 Within this directory you will find:
 
@@ -208,11 +208,12 @@ When 0repo generates the signed feeds it will also:
 
 - check that each feed's URI is correct for its location
 - add the stylesheet declaration
-- for each relative <archive>'s href, check that the archive is known
+- for each relative `<archive>`'s `href`, check that the archive is known
   and make the URL absolute
 
 The `public` directory can then be transferred to the hosting provider (e.g.
-using rsync).
+using rsync). Edit the `upload_public_dir` function in `0repo-config.py` to
+let 0repo upload it automatically.
 
 
 Editing feeds
