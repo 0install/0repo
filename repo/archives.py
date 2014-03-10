@@ -31,6 +31,12 @@ def get_sha1(path):
 			sha1.update(got)
 	return sha1.hexdigest()
 
+def _assert_identical_archives(name, sha1, existing):
+	if sha1 != existing.sha1:
+		raise SafeException("A different archive with basename '{name}' is "
+		                    "already in the repository: {archive}".format(name = name, archive = existing))
+
+
 def process_method(config, incoming_dir, impl, method, required_digest):
 	archives = []
 
@@ -65,9 +71,7 @@ def process_method(config, incoming_dir, impl, method, required_digest):
 		existing = config.archive_db.entries.get(archive, None)
 		if existing is not None:
 			new_sha1 = get_sha1(archive_path)
-			if new_sha1 != existing.sha1:
-				raise SafeException("A different archive with basename '{name}' is "
-						    "already in the repository: {archive}".format(name = archive, archive = existing))
+			_assert_identical_archives(archive, sha1=new_sha1, existing=existing)
 		else:
 			archive_rel_url = paths.get_archive_rel_url(config, archive, impl)
 
@@ -121,10 +125,13 @@ class ArchiveDB:
 			self.save_all()
 
 	def add(self, basename, url, sha1):
-		assert basename not in self.entries, basename
-		with open(self.path, 'at') as stream:
-			stream.write('%s %s %s\n' % (basename, sha1, url))
-		self.entries[basename] = StoredArchive(url, sha1)
+		existing = self.entries.get(basename, None)
+		if existing is not None:
+			_assert_identical_archives(basename, sha1=sha1, existing=existing)
+		else:
+			with open(self.path, 'at') as stream:
+				stream.write('%s %s %s\n' % (basename, sha1, url))
+			self.entries[basename] = StoredArchive(url, sha1)
 
 	def lookup(self, basename):
 		x = self.entries.get(basename, None)
