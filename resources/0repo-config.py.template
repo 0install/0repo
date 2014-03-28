@@ -37,13 +37,26 @@ def upload_public_dir(files, message):
 	# Example2: use a Git repository to sync to the hosting server
 	#
 	# A post-receive hook at the remote end can be used to check out the new version automatically.
-	# Assuming you push to the 'master' branch and the working copy is some other branch (e.g. 'live'),
-	# your (executable!) .git/hooks/post-receive should be:
+	# Assuming you push to the 'master' branch and the working copy is some other branch (e.g. 'live'):
+	#
+	# Create a new repository, with the 'live' branch checked out:
+	#
+	# git init
+	# git commit --allow-empty -m 'Created new repository'
+	# git checkout -b live master
+	#
+	# Create .git/hooks/post-receive containing:
 	#
 	# #!/bin/sh
 	# unset GIT_DIR; cd .. && git merge --ff-only master
 	#
-	# (change to "if 1" to enable)
+	# Make it executable:
+	#
+	# chmod a+x .git/hooks/post-receive
+	#
+	# Clone it as the "public" directory on your local machine (remove the empty one first).
+	#
+	# Change this "if 1" to enable:
 	if 0:
 		# Make sure Git is tracking any new files
 		subprocess.check_call(['git', 'add', '--'] + files)
