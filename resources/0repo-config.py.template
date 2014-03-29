@@ -112,9 +112,12 @@ def upload_archives(archives):
 
 		# Example 1 : simple copy to local web-server directory
 		archives_local_dir = "/home/me/public_html/archives/"
-		subprocess.check_call(["cp"] + files + [join(archives_local_dir, dir_rel_url)])
+		subprocess.check_call(["cp", "--"] + files + [join(archives_local_dir, dir_rel_url)])
 
-		# Example 2 : upload to SourceForge file release system
+		# Example 2 : scp to remote server
+                subprocess.check_call(["scp", "--"] + files + [join("me@myserver:/home/me/webapps/myrepo/archives/" + dir_rel_url)])
+
+		# Example 3 : upload to SourceForge file release system
 		user = 'sf-user-name'
 		project = 'sf-project-name'
 		path = '/home/frs/project/{p}/{pr}/{project}/{dir_rel_url}/'.format(
