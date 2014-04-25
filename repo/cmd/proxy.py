@@ -13,10 +13,12 @@ def handle(args):
 	cmd.find_config()
 	config = cmd.load_config()
 
-	os.chdir("public")
+	# Only serve files under these prefixes
+	public_prefix = os.path.realpath('public') + os.path.sep
+	archives_prefix = os.path.realpath('archives') + os.path.sep
+	DOCUMENT_ROOTS = [ public_prefix, archives_prefix ]
 
-	# Only server files under this prefix
-	public_prefix = os.path.realpath(os.getcwd()) + os.path.sep
+	os.chdir(public_prefix)
 
 	class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 		pass
@@ -37,7 +39,7 @@ def handle(args):
 				if self.path.startswith(config.REPOSITORY_BASE_URL):
 					rel_path = self.path[len(config.REPOSITORY_BASE_URL):]
 					full_path = os.path.realpath(os.path.abspath(rel_path))
-					if not full_path.startswith(public_prefix):
+					if not any (full_path.startswith(prefix) for prefix in DOCUMENT_ROOTS):
 						self.send_error(403, "Forbidden: %s" % rel_path)
 						raise Exception("Attempt to fetch file outside of '%s': %s'" %
 								(public_prefix, full_path))
