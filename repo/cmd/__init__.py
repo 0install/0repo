@@ -56,9 +56,16 @@ def main(argv):
 def find_config(missing_ok = False):
 	"""Change to parent directory until we find one with 0repo-config.py."""
 
+	def is_root_dir():
+		if os.name == 'nt':
+			# Top-level directories on Windows are always three characters long (e.g. 'C:\')
+			return len(os.getcwd()) == 3
+		else:
+			return os.path.samefile('.', '..')
+
 	# Walk up the directory tree to find the root of the repository
 	while not os.path.isfile('0repo-config.py'):
-		if os.path.samefile('.', '..'):
+		if is_root_dir():
 			if missing_ok:
 				return False
 			raise SafeException('0repo must be run from a repository directory (a directory that contains\n'
