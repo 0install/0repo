@@ -37,6 +37,10 @@
       <version not-before="2.2-post"/>
     </requires>
 
+    <requires interface="http://0install.de/feeds/msysgit.xml" os="Windows">
+      <environment name="PATH" insert="."/>
+    </requires>
+
     <implementation id="." version="0.3-post"/>
   </group>
 </interface>
