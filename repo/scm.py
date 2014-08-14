@@ -35,6 +35,10 @@ def uid_from_fingerprint(keyid):
 def commit(cwd, paths, msg, key, extra_options = []):
 	env = os.environ.copy()
 	name, email = uid_from_fingerprint(key)
+	if os.name == 'nt':
+		# Windows may choke on non-ASCII characters in command-line arguments
+		import urllib
+		msg = urllib.quote_plus(msg)
 
 	env['GIT_COMMITTER_NAME'] = name
 	env['GIT_COMMITTER_EMAIL'] = email
