@@ -150,7 +150,11 @@ def build_public_feeds(config):
 			key_symlink_path = join('public', key_symlink_rel_path)
 			if not os.path.islink(key_symlink_path):
 				assert not os.path.exists(key_symlink_path), key_symlink_path
-				os.symlink(relpath(key_path, dirname(key_symlink_path)), key_symlink_path)
+				if os.name == 'nt':
+					import shutil
+					shutil.copyfile(key_path, key_symlink_path)
+				else:
+					os.symlink(relpath(key_path, dirname(key_symlink_path)), key_symlink_path)
 			os.stat(key_symlink_path)
 
 		if not public_feed.changed: continue
