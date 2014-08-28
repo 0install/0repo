@@ -148,8 +148,7 @@ def build_public_feeds(config):
 			key_symlink_rel_path = join(dirname(public_feed.public_rel_path), config.GPG_PUBLIC_KEY_DIRECTORY, basename(key_path))
 			other_files.append(key_symlink_rel_path)
 			key_symlink_path = join('public', key_symlink_rel_path)
-			if not os.path.islink(key_symlink_path):
-				assert not os.path.exists(key_symlink_path), key_symlink_path
+			if not os.path.exists(key_symlink_path):
 				if os.name == 'nt':
 					import shutil
 					shutil.copyfile(key_path, key_symlink_path)
