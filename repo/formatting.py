@@ -37,6 +37,6 @@ def format_doc(doc):
 
 	b = StringIO()
 	b.write(b'<?xml version="1.0" ?>\n')
-	doc.documentElement.writexml(b)
+	b.write(doc.documentElement.toxml(encoding = 'utf-8'))
 	b.write(b'\n')
 	return b.getvalue()
