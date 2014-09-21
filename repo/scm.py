@@ -38,7 +38,7 @@ def commit(cwd, paths, msg, key, extra_options = []):
 	if os.name == 'nt':
 		# Windows may choke on non-ASCII characters in command-line arguments
 		import urllib
-		msg = urllib.quote_plus(msg)
+		msg = urllib.quote(msg.encode('utf8'))
 
 	env['GIT_COMMITTER_NAME'] = name
 	env['GIT_COMMITTER_EMAIL'] = email
