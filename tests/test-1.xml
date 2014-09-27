@@ -3,7 +3,7 @@
   	   xmlns:myns="http://example.com/ns1">
   <name>test</name>
   <summary>testing</summary>
-  <description>Test-case for 0repo. Unicode ã</description>
+  <description xml:lang='en'>Test-case for 0repo. Unicode ã</description>
 
   <homepage myns:x='y'>http://example.com</homepage>
 
