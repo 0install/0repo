@@ -169,7 +169,7 @@ def check_new_impl(impl):
 # You might want to change this if you have a strange naming scheme (e.g. feed
 # URLs ending in "/" or without an extension). The result must end in '.xml'.
 def get_feeds_rel_path(uri_rel_path):
-	return uri_rel_path
+	return uri_rel_path.replace('/', os.sep)
 
 # A source feed "feeds/games/my-game.xml" has a relative path of
 # "games/my-game.xml". Where should the corresponding generated (signed) feed
