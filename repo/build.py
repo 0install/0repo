@@ -11,7 +11,7 @@ from collections import namedtuple
 
 from zeroinstall.injector.namespaces import XMLNS_IFACE
 from zeroinstall.support import xmltools
-from zeroinstall import SafeException
+from zeroinstall import SafeException, support
 
 from repo import paths
 
@@ -165,7 +165,7 @@ def build_public_feeds(config):
 
 		with open(target_path + '.new', 'wb') as stream:
 			stream.write(signed_xml)
-		os.rename(target_path + '.new', target_path)
+		support.portable_rename(target_path + '.new', target_path)
 		print("Updated", target_path)
 
 	return feeds, other_files

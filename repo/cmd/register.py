@@ -7,6 +7,7 @@ import os
 from os.path import join
 import json
 
+from zeroinstall import support
 from zeroinstall.support import basedir
 from repo import cmd
 
@@ -36,7 +37,7 @@ def handle(args):
 
 	with open(path + '.new', 'wb') as stream:
 		json.dump(db, stream)
-	os.rename(path + '.new', path)
+	support.portable_rename(path + '.new', path)
 	
 	if existing:
 		print("Updated entry in {path} to:".format(path = path))

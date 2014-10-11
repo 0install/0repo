@@ -7,7 +7,7 @@ import os, shutil, hashlib, collections, re
 from os.path import join, basename, dirname, abspath
 
 from zeroinstall.injector import model
-from zeroinstall import SafeException
+from zeroinstall import SafeException, support
 from zeroinstall.support import tasks
 
 from repo import paths, urltest
@@ -149,7 +149,7 @@ class ArchiveDB:
 
 			for basename, e in sorted(self.entries.items()):
 				stream.write('%s %s %s\n' % (basename, e.sha1, e.url))
-		os.rename(self.path + '.new', self.path)
+		support.portable_rename(self.path + '.new', self.path)
 
 def pick_digest(impl):
 	from zeroinstall.zerostore import manifest, parse_algorithm_digest_pair

@@ -10,7 +10,7 @@ from xml.dom import minidom, Node
 
 from zeroinstall.injector import qdom, model, gpg
 from zeroinstall.injector.namespaces import XMLNS_IFACE
-from zeroinstall import SafeException
+from zeroinstall import SafeException, support
 
 from repo import paths, archives, scm, merge, formatting
 
@@ -187,7 +187,7 @@ def process(config, xml_file, delete_on_success):
 	try:
 		with open(feed_path + '.new', 'wb') as stream:
 			stream.write(new_xml)
-		os.rename(feed_path + '.new', feed_path)
+		support.portable_rename(feed_path + '.new', feed_path)
 
 		# Commit
 		if new_file:

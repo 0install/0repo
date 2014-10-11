@@ -9,6 +9,7 @@ from xml.dom import minidom
 from xml.dom import XMLNS_NAMESPACE
 
 from zeroinstall.injector.namespaces import XMLNS_IFACE
+from zeroinstall import support
 from zeroinstall.support import xmltools
 
 from . import namespace, build
@@ -61,7 +62,7 @@ def write_catalog(config, feeds):
 		new_data = build.sign_xml(config, catalog_header + cat_doc.documentElement.toxml(encoding = 'utf-8') + '\n')
 		with open(catalog_file + '.new', 'wb') as stream:
 			stream.write(new_data)
-		os.rename(catalog_file + '.new', catalog_file)
+		support.portable_rename(catalog_file + '.new', catalog_file)
 		print("Updated catalog.xml")
 
 	return ['catalog.xml']
