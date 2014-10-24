@@ -35,7 +35,10 @@ def get_last_commit(feed_path):
 
 def get_choice(options):
 	while True:
-		choice = raw_input('/'.join(options) + ': ').lower()
+		try:
+			choice = raw_input('/'.join(options) + ': ').lower()
+		except EOFError:
+			return None
 		if not choice: continue
 		for o in options:
 			if o.lower().startswith(choice):
