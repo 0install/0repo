@@ -37,7 +37,7 @@
       <version not-before="2.2-post"/>
     </requires>
 
-    <requires interface="http://0install.de/feeds/msysgit.xml" os="Windows">
+    <requires interface="http://repo.roscidus.com/git/core">
       <environment name="PATH" insert="."/>
     </requires>
 
