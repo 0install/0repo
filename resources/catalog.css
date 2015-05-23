@@ -1,3 +1,11 @@
+html {
+    overflow-y: scroll;
+}
+
+body {
+    font-family: sans-serif;
+}
+
 #main {
     background: white;
     max-width: 50em;
@@ -22,12 +30,13 @@ h1 {
 
 .icon {
     width: 42px;
-    flex-shrink: 0;
+    flex: 0 0 auto;
     padding: 0.5rem 0 0.5rem 0.5rem;
 }
 
 .info {
-    flex-grow: 1;
+    flex: 1 1 auto;
+    /*flex-grow: 1;*/
     padding: 0.5rem 0 0.5rem 0.5rem;
 }
 .name {
@@ -46,5 +55,6 @@ h1 {
 }
 
 .actions {
+    flex: 0 0 auto;
     padding: 1rem;
 }
