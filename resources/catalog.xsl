@@ -12,14 +12,14 @@
       <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         <meta http-equiv="Content-Language" content="en" />
-        <title>Zero Install - Software catalog</title>
+        <title>Zero Install - Software catalogue</title>
         <link rel="stylesheet" href="resources/catalog.css" type="text/css" />
         <script src="http://cdnjs.cloudflare.com/ajax/libs/list.js/1.1.1/list.min.js"></script>
       </head>
 
       <body>
         <div id="main">
-          <h1>Zero Install - Software catalog</h1>
+          <h1>Zero Install - Software catalogue</h1>
           <input class="search" placeholder="Search" />
           <div class="list">
             <xsl:for-each select="interface:interface">
