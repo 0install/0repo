@@ -38,9 +38,9 @@
     </requires>
 
     <requires interface="http://repo.roscidus.com/git/core">
-      <environment name="PATH" insert="."/>
+      <environment insert="." name="PATH"/>
     </requires>
 
-    <implementation id="." version="0.3-post"/>
+    <implementation id="." released="2015-07-11" version="0.4"/>
   </group>
 </interface>
