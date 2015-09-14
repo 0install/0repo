@@ -37,6 +37,12 @@ def _assert_identical_archives(name, sha1, existing):
 		                    "already in the repository: {archive}".format(name = name, archive = existing))
 
 
+def _default_archive_test(archive, url):
+    actual_size = urltest.get_size(url)
+    if actual_size != archive.size:
+        raise SafeException("Archive {url} has size {actual}, but expected {expected} bytes".format(
+            url = url, actual = actual_size, expected = archive.size))
+
 def process_method(config, incoming_dir, impl, method, required_digest):
 	archives = []
 
@@ -54,11 +60,8 @@ def process_method(config, incoming_dir, impl, method, required_digest):
 
 		if '/' in archive:
 			has_external_archives = True
-			url = archive
-			actual_size = urltest.get_size(url)
-			if actual_size != step.size:
-				raise SafeException("External archive {url} has size {actual}, but expected {expected} bytes".format(
-					url = url, actual = actual_size, expected = step.size))
+			test_archive = getattr(config, 'check_external_archive', _default_archive_test)
+			test_archive(step, archive)
 			continue		# Hosted externally
 
 		if not valid_simple_name.match(archive):
@@ -183,15 +186,8 @@ def process_archives(config, incoming_dir, feed):
 
 	# Copy to archives directory and upload
 	config.upload_archives(archives)
-
-	# Test uploads
-	def default_test(archive, url):
-		actual_size = urltest.get_size(url)
-		if actual_size != archive.size:
-			raise SafeException("Archive {url} has size {actual}, but expected {expected} bytes".format(
-				url = url, actual = actual_size, expected = archive.size))
 	
-	test_archive = getattr(config, 'check_uploaded_archive', default_test)
+	test_archive = getattr(config, 'check_uploaded_archive', _default_archive_test)
 
 	for archive in archives:
 		url = config.ARCHIVES_BASE_URL + archive.rel_url
