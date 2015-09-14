@@ -202,4 +202,8 @@ GPG_PUBLIC_KEY_DIRECTORY = "."
 # uploaded correctly. If your server doesn't support HEAD requests (e.g. Google
 # code), you might want to disable this check, or implement your own test instead:
 
+# This for archives uploaded and managed by 0repo itself.
 #def check_uploaded_archive(archive, url): pass
+
+# As check_uploaded_archive, but for external archives.
+#def check_external_archive(archive, url): pass
