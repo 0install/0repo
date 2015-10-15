@@ -130,6 +130,10 @@ def upload_archives(archives):
 		print ' '.join(cmd)
 		subprocess.check_call(cmd)
 
+# Recalculate the manifest digests specified for local archives in incoming feeds to ensure the are correct.
+# You can set this to False if you trust all contributors to create correct feeds.
+CHECK_DIGESTS = True
+
 
 #### Custom checks and rules ####
 
