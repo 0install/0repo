@@ -1,0 +1,8 @@
+language: c
+sudo: false
+install: bash -e .travis-install.sh
+addons:
+  apt:
+    packages:
+    - python-gobject
+script: 0test 0repo.xml
