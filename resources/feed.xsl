@@ -36,9 +36,14 @@ http://creativecommons.org/licenses/by-sa/2.5/
 								<h2><xsl:value-of select='zi:summary'/></h2>
 
 								<div class="what-is-this">
-									This page is a <a href="http://0install.net/">zero-install</a> feed.
-									If you don't know what that is or how to use it, you're in luck - see the
-									<a href="#what-is-this">instructions at the bottom of this page</a>
+									<form action="http://0install.de/bootstrap/" method="get">
+										<input type="hidden" name="name" value="{zi:name}"/>
+										<input type="hidden" name="uri" value="{/zi:interface/@uri}"/>
+										<input type="submit" value="Download and run {zi:name}"/>
+									</form>
+									This page is a <a href="http://0install.net/">Zero Install</a> feed.
+									If you want to know how this works beneath the covers see the
+									<a href="#what-is-this">instructions at the bottom of this page</a>.
 								</div>
 
 								<dl>
