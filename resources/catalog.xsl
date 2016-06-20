@@ -13,7 +13,7 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         <meta http-equiv="Content-Language" content="en" />
         <title>Zero Install - Software catalogue</title>
-        <link rel="stylesheet" href="resources/catalog.css" type="text/css" />
+        <link rel="stylesheet" href="@REPOSITORY_BASE_URL@/resources/catalog.css" type="text/css" />
         <script src="http://cdnjs.cloudflare.com/ajax/libs/list.js/1.1.1/list.min.js"></script>
       </head>
 
@@ -52,7 +52,14 @@
                   <form action="http://0install.de/bootstrap/" method="get">
                     <input type="hidden" name="name" value="{interface:name}"/>
                     <input type="hidden" name="uri" value="{@uri}"/>
+                    <input type="hidden" name="mode" value="run"/>
                     <input type="submit" value="Run"/>
+                  </form>
+                  <form action="http://0install.de/bootstrap/" method="get">
+                    <input type="hidden" name="name" value="{interface:name}"/>
+                    <input type="hidden" name="uri" value="{@uri}"/>
+                    <input type="hidden" name="mode" value="integrate"/>
+                    <input type="submit" value="Integrate"/>
                   </form>
                 </div>
               </div>
