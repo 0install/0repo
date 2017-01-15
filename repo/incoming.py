@@ -129,7 +129,7 @@ def process(config, xml_file, delete_on_success):
 				print("Already imported {feed}; skipping".format(feed = feed_path))
 				if delete_on_success:
 					os.unlink(xml_file)
-				return
+				return None
 			else:
 				raise SafeException("Can't import '{url}'; non-identical feed {path} already exists.\n\n"
 						    "To ADD new versions to this feed, remove the a 'uri' attribute from "
@@ -233,7 +233,9 @@ def process_incoming_dir(config):
 	if new_xml:
 		for xml in new_xml:
 			print("Processing", xml)
-			messages.append(process(config, os.path.join('incoming', xml), delete_on_success = True))
+			msg = process(config, os.path.join('incoming', xml), delete_on_success = True)
+			if msg:
+				messages.append(msg)
 	else:
 		pass #print('No .xml files in "incoming" directory (nothing to process)')
 	
