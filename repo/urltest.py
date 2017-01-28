@@ -25,7 +25,12 @@ def get_http_size(url, ttl = 3):
 	else:
 		path = ''
 
-	http.request('HEAD', '/' + path, headers = {'Host': address.hostname, 'User-agent': '0repo (http://0install.net/0repo.html)'})
+	if address.hostname.endswith('.s3.amazonaws.com'):
+		method = 'GET'	# HEAD doesn't work on S3 due to signature mismatch
+	else:
+		method = 'HEAD'
+
+	http.request(method, '/' + path, headers = {'Host': address.hostname, 'User-agent': '0repo (http://0install.net/0repo.html)'})
 	response = http.getresponse()
 	try:
 		if response.status == 200:
