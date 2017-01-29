@@ -36,7 +36,7 @@ def do_update(config, messages = None):
 	resources_dir = join('resources')
 	if not os.path.isdir(resources_dir):
 		os.mkdir(resources_dir)
-	for resource in ['catalog.xsl', 'catalog.css', 'feed.xsl', 'feed.css']:
+	for resource in ['catalog.xsl', 'catalog.xsl.de', 'catalog.css', 'feed.xsl', 'feed.xsl.de', 'feed.css']:
 		target = join('resources', resource)
 		files.append(target)
 		if not os.path.exists(target):
