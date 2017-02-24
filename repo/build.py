@@ -81,7 +81,7 @@ def generate_public_xml(config, source_xml_path):
 			base = config.REPOSITORY_BASE_URL))
 	rel_uri = declared_iface[len(config.REPOSITORY_BASE_URL):]
 
-	expected_path = join('feeds', config.get_feeds_rel_path(rel_uri))
+	expected_path = join('feeds', config.get_feeds_rel_path(rel_uri).replace('/', os.sep))
 	if expected_path != source_xml_path:
 		raise SafeException("Feed '{path}' with uri='{uri}' should be located at '{expected_path}'".format(
 			path = source_xml_path,
