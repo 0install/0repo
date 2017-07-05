@@ -38,7 +38,11 @@
     </requires>
 
     <requires interface="http://repo.roscidus.com/git/core">
-      <environment insert="." name="PATH"/>
+      <executable-in-path name="git"/>
+    </requires>
+
+    <requires interface="http://repo.roscidus.com/security/gnupg">
+      <executable-in-path name="gpg"/>
     </requires>
 
     <implementation id="." version="0.4-post"/>
