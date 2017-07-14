@@ -41,6 +41,10 @@ def commit(cwd, paths, msg, key, extra_options = []):
 	env['GIT_AUTHOR_NAME'] = name
 	env['GIT_AUTHOR_EMAIL'] = email
 
+	# The GnuPG version bundled with Git for Windows uses a different default home dir than native Win32 builds. Compensate for this.
+	if os.name == 'nt' and os.getenv('GNUPGHOME') is None:
+		env['GNUPGHOME'] = os.path.join(os.getenv('appdata'), 'gnupg')
+
 	import tempfile
 	msg_file = tempfile.NamedTemporaryFile(delete=False)
 	try:
