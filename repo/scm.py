@@ -35,16 +35,24 @@ def uid_from_fingerprint(keyid):
 def commit(cwd, paths, msg, key, extra_options = []):
 	env = os.environ.copy()
 	name, email = uid_from_fingerprint(key)
-	if os.name == 'nt':
-		# Windows may choke on non-ASCII characters in command-line arguments
-		import urllib
-		msg = urllib.quote(msg.encode('utf8'))
 
 	env['GIT_COMMITTER_NAME'] = name
 	env['GIT_COMMITTER_EMAIL'] = email
 	env['GIT_AUTHOR_NAME'] = name
 	env['GIT_AUTHOR_EMAIL'] = email
 
-	subprocess.check_call(['git', 'commit', '-q', '-m', msg, '-S' + key] + extra_options + ['--'] + paths,
-			      cwd = cwd,
-			      env = env)
+	# The GnuPG version bundled with Git for Windows uses a different default home dir than native Win32 builds. Compensate for this.
+	if os.name == 'nt' and os.getenv('GNUPGHOME') is None:
+		env['GNUPGHOME'] = os.path.join(os.getenv('appdata'), 'gnupg')
+
+	import tempfile
+	msg_file = tempfile.NamedTemporaryFile(delete=False)
+	try:
+		msg_file.write(msg.encode('utf-8'))
+		msg_file.close()
+		subprocess.check_call(['git', 'commit', '-q', '-F', msg_file.name, '-S' + key] + extra_options + ['--'] + paths,
+				      cwd = cwd,
+				      env = env)
+	finally:
+		msg_file.close()
+		os.remove(msg_file.name)
