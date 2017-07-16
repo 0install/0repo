@@ -11,6 +11,9 @@ cat > ~/.config/0install.net/injector/trustdb.xml <<EOF
     <domain value="0install.net"/>
     <domain value="repo.roscidus.com"/>
   </key>
+  <key fingerprint="617794D7C3DFE0FFF572065C0529FDB71FB13910">
+    <domain value="repo.roscidus.com"/>
+  </key>
   <key fingerprint="AC9B973549D819AE22BCD08D22EA111A7E4242A4">
     <domain value="repo.roscidus.com"/>
   </key>
