@@ -37,7 +37,24 @@ def sign_xml(config, source_xml):
 	sig = "<!-- Base64 Signature\n" + encoded + "\n-->\n"
 	return source_xml + sig
 
-def expand_impl_relative_urls(config, parent):
+def import_missing_archive(config, impl, archive):
+	from io import BytesIO
+	from zeroinstall.injector import model, qdom
+	from repo import archives
+	print("Importing missing archive {name}".format(name = archive))
+	doc = qdom.parse(BytesIO(impl.ownerDocument.documentElement.toxml('utf-8')))
+	feed = model.ZeroInstallFeed(doc)
+	impl = feed.implementations[impl.getAttribute('id')]
+	required_digest = archives.pick_digest(impl)
+	new_archives = []
+	for method in impl.download_sources:
+		new_archives += archives.process_method(config, 'incoming', impl, method, required_digest)
+	archives.upload_archives(config, new_archives)
+	for x in new_archives:
+		os.unlink(x.incoming_path)
+	return config.archive_db.lookup(archive)
+
+def expand_impl_relative_urls(config, parent, impl):
 	for elem in parent.childNodes:
 		if elem.nodeType != Node.ELEMENT_NODE: continue
 		if elem.namespaceURI != XMLNS_IFACE: continue
@@ -46,9 +63,17 @@ def expand_impl_relative_urls(config, parent):
 			archive = elem.getAttribute('href')
 			assert archive
 			if '/' not in archive:
-				elem.setAttribute('href', config.archive_db.lookup(archive).url)
+				x = config.archive_db.lookup(archive)
+				if not x and os.path.exists(os.path.join('incoming', archive)):
+					x = import_missing_archive(config, impl, archive)
+				if not x:
+					raise SafeException("Missing entry for {basename} in {db}; can't build feeds."
+							    "Place missing archives in 'incoming' and try again.".format(
+						basename = archive,
+						db = config.archive_db.path))
+				elem.setAttribute('href', x.url)
 		elif elem.localName == 'recipe':
-			expand_impl_relative_urls(config, elem)
+			expand_impl_relative_urls(config, elem, impl = impl)
 
 def expand_relative_urls(config, parent):
 	for elem in parent.childNodes:
@@ -58,7 +83,7 @@ def expand_relative_urls(config, parent):
 		if elem.localName == 'group':
 			expand_relative_urls(config, elem)
 		elif elem.localName == 'implementation':
-			expand_impl_relative_urls(config, elem)
+			expand_impl_relative_urls(config, elem, impl = elem)
 
 def generate_public_xml(config, source_xml_path):
 	"""Load source_xml_path and expand any relative URLs."""

@@ -137,12 +137,7 @@ class ArchiveDB:
 			self.entries[basename] = StoredArchive(url, sha1)
 
 	def lookup(self, basename):
-		x = self.entries.get(basename, None)
-		if x:
-			return x
-		raise SafeException("Missing entry for {basename} in {db}; can't build feeds.".format(
-			basename = basename,
-			db = self.path))
+		return self.entries.get(basename, None)
 	
 	def save_all(self):
 		with open(self.path + '.new', 'wt') as stream:
@@ -173,18 +168,8 @@ def pick_digest(impl):
 
 	return required_digest
 
-def process_archives(config, incoming_dir, feed):
-	"""feed is the parsed XML being processed. Any archives are in 'incoming_dir'."""
-
-	# Pick a digest to check (maybe we should check all of them?)
-	# Find required archives and check they're in 'incoming'
-	archives = []
-	for impl in feed.implementations.values():
-		required_digest = pick_digest(impl)
-		for method in impl.download_sources:
-			archives += process_method(config, incoming_dir, impl, method, required_digest)
-
-	# Copy to archives directory and upload
+# Copy to archives directory and upload
+def upload_archives(config, archives):
 	config.upload_archives(archives)
 	
 	test_archive = getattr(config, 'check_uploaded_archive', _default_archive_test)
@@ -196,5 +181,18 @@ def process_archives(config, incoming_dir, feed):
 	for archive in archives:
 		sha1 = get_sha1(archive.source_path)
 		config.archive_db.add(archive.basename, config.ARCHIVES_BASE_URL + archive.rel_url, sha1)
+
+def process_archives(config, incoming_dir, feed):
+	"""feed is the parsed XML being processed. Any archives are in 'incoming_dir'."""
+
+	# Pick a digest to check (maybe we should check all of them?)
+	# Find required archives and check they're in 'incoming'
+	archives = []
+	for impl in feed.implementations.values():
+		required_digest = pick_digest(impl)
+		for method in impl.download_sources:
+			archives += process_method(config, incoming_dir, impl, method, required_digest)
+
+	upload_archives(config, archives)
 
 	return archives
