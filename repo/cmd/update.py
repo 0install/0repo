@@ -56,6 +56,10 @@ def do_update(config, messages = None):
 		print(out)
 		print("Run 'git commit -a' from that directory to save your changes.")
 
+	if getattr(config, 'TRACK_TESTING_IMPLS', True):
+		graduation_check(feeds, feeds_dir)
+
+def graduation_check(feeds, feeds_dir):
 	# Warn about releases that are still 'testing' a while after release
 	now = time.time()
 	def age(impl):

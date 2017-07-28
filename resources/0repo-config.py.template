@@ -161,6 +161,9 @@ def check_new_impl(impl):
 
 	return None
 
+# Prompt about old implementations that remain in the "testing" stability level for too long.
+# Set this to False if you intend to permanently mark releases as testing, e.g., release candidates.
+TRACK_TESTING_IMPLS = True
 
 #### Repository Layout (advanced) ####
 
