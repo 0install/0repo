@@ -179,7 +179,7 @@ def process(config, xml_file, delete_on_success):
 	# Step 3 : merge XML into feeds directory
 
 	# Prompt about existing testing versions
-	if new_xml is None:
+	if new_xml is None and getattr(config, 'TRACK_TESTING_IMPLS', True):
 		new_versions = frozenset(impl.get_version() for impl in feed.implementations.values())
 		if len(new_versions) == 1:
 			ask_if_previous_still_testing(new_doc, list(new_versions)[0])
