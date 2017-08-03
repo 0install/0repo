@@ -38,9 +38,12 @@ def write_catalog(config, feeds):
 		cat_root.setAttributeNS(XMLNS_NAMESPACE, 'xmlns:' + name, ns)
 		custom_tags[ns] = tags
 
-	for feed in feeds:
-		feed_root = feed.doc.documentElement
+	feed_roots = [feed.doc.documentElement for feed in feeds]
 
+	def get_name(feed_root):
+		return feed_root.getElementsByTagName('name')[0].firstChild.wholeText
+
+	for feed_root in sorted(feed_roots, key=get_name):
 		elem = cat_doc.createElementNS(XMLNS_IFACE, "interface")
 		elem.setAttribute('uri', feed_root.getAttribute("uri"))
 		for feed_elem in feed_root.childNodes:
