@@ -45,6 +45,6 @@
       <executable-in-path name="gpg"/>
     </requires>
 
-    <implementation id="." version="0.5-post"/>
+    <implementation id="." released="2017-08-22" version="0.5.1"/>
   </group>
 </interface>
