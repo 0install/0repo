@@ -231,7 +231,7 @@ def process_incoming_dir(config):
 	messages = []
 
 	if new_xml:
-		for xml in new_xml:
+		for xml in sorted(new_xml):
 			print("Processing", xml)
 			msg = process(config, os.path.join('incoming', xml), delete_on_success = True)
 			if msg:
