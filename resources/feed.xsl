@@ -207,6 +207,9 @@ http://creativecommons.org/licenses/by-sa/2.5/
 																	<xsl:for-each select=".//zi:archive">
 																		<a href="{@href}">Download</a> (<xsl:value-of select="@size"/> bytes)
 																	</xsl:for-each>
+																	<xsl:for-each select=".//zi:file">
+																		<a href="{@href}">Download</a> (<xsl:value-of select="@size"/> bytes)
+																	</xsl:for-each>
 																</td>
 															</tr>
 														</xsl:for-each>
