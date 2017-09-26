@@ -43,7 +43,11 @@ def write_catalog(config, feeds):
 	def get_name(feed_root):
 		return feed_root.getElementsByTagName('name')[0].firstChild.wholeText
 
+	def is_replaced(feed_root):
+		return feed_root.getElementsByTagName('replaced-by').length > 0
+
 	for feed_root in sorted(feed_roots, key=get_name):
+		if is_replaced(feed_root): continue
 		elem = cat_doc.createElementNS(XMLNS_IFACE, "interface")
 		elem.setAttribute('uri', feed_root.getAttribute("uri"))
 		for feed_elem in feed_root.childNodes:
