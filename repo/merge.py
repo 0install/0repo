@@ -251,7 +251,7 @@ def merge(master_doc, local_doc):
 
 		# Already copied to parent <group>
 		for x in list(childNodes(new_impl, XMLNS_IFACE)):
-			if x.localName in ('command',) + requires_names:
+			if x.localName in ['command'] + list(requires_names):
 				new_impl.removeChild(x)
 
 		# Attributes might have been set on a parent group; move to the impl
