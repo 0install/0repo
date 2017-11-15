@@ -193,6 +193,23 @@ class TestMerge(unittest.TestCase):
   <implementation id="sha1=234" version="2"/>
 </group>""")
 
+	def testMergeEnvironment(self):
+		check_merge("""\
+<group>
+  <environment name='foo' append='bar'/>
+  <implementation id='sha1=123' version='1'/>
+</group>""", """\
+<group>
+  <implementation id='sha1=234' version='2'>
+    <environment name='foo' append='bar'/>
+  </implementation>
+</group>""", """\
+<group>
+  <environment name='foo' append='bar'/>
+  <implementation id="sha1=123" version="1"/>
+  <implementation id="sha1=234" version="2"/>
+</group>""")
+
 	def testMergeText(self):
 		check_merge("""\
 <group>
