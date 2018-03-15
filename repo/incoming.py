@@ -185,32 +185,7 @@ def process(config, xml_file, delete_on_success):
 			ask_if_previous_still_testing(new_doc, list(new_versions)[0])
 		new_xml = formatting.format_doc(new_doc)
 
-	did_git_add = False
-
-	try:
-		with open(feed_path + '.new', 'wb') as stream:
-			stream.write(new_xml)
-		support.portable_rename(feed_path + '.new', feed_path)
-
-		# Commit
-		if new_file:
-			subprocess.check_call(['git', 'add', git_path], cwd = 'feeds')
-			did_git_add = True
-
-		# (this must be last in the try block)
-		scm.commit('feeds', [git_path], commit_msg, key = config.GPG_SIGNING_KEY)
-	except Exception as ex:
-		# Roll-back (we didn't commit to Git yet)
-		print(ex)
-		print("Error updating feed {feed}; rolling-back...".format(feed = xml_file))
-		if new_file:
-			if os.path.exists(feed_path):
-				os.unlink(feed_path)
-			if did_git_add:
-				subprocess.check_call(['git', 'rm', '--', git_path], cwd = 'feeds')
-		else:
-			subprocess.check_call(['git', 'checkout', 'HEAD', '--', git_path], cwd = 'feeds')
-		raise
+	write_to_git(feed_path, new_xml, commit_msg, config, new_file)
 
 	# Delete XML and archives from incoming directory
 	if delete_on_success:
@@ -268,3 +243,32 @@ def create_from_local(master_feed_url, new_impls_feed):
 		root.removeChild(node)
 	
 	return formatting.format_doc(doc)
+
+def write_to_git(feed_path, new_xml, commit_msg, config, new_file = False):
+	did_git_add = False
+	git_path = relpath(feed_path, 'feeds')
+
+	try:
+		with open(feed_path + '.new', 'wb') as stream:
+			stream.write(new_xml)
+		support.portable_rename(feed_path + '.new', feed_path)
+
+		# Commit
+		if new_file:
+			subprocess.check_call(['git', 'add', git_path], cwd = 'feeds')
+			did_git_add = True
+
+		# (this must be last in the try block)
+		scm.commit('feeds', [git_path], commit_msg, key = config.GPG_SIGNING_KEY)
+	except Exception as ex:
+		# Roll-back (we didn't commit to Git yet)
+		print(ex)
+		print("Error updating feed {feed}; rolling-back...".format(feed = git_path))
+		if new_file:
+			if os.path.exists(feed_path):
+				os.unlink(feed_path)
+			if did_git_add:
+				subprocess.check_call(['git', 'rm', '--', git_path], cwd = 'feeds')
+		else:
+			subprocess.check_call(['git', 'checkout', 'HEAD', '--', git_path], cwd = 'feeds')
+		raise
