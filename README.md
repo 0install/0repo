@@ -219,9 +219,13 @@ let 0repo upload it automatically.
 Editing feeds
 -------------
 
-You can edit the unsigned feeds under repo/feeds whenever you want. Running
-0repo again will regenerate the signed feeds in repo/public (if the source feed
+You can edit the unsigned feeds under `repo/feeds` whenever you want. Running
+`0repo` again will regenerate the signed feeds in repo/public (if the source feed
 has changed). You should commit your changes with `git commit`.
+
+You can also run `0repo modify URI (ID|VERSION) --stability=STABILITY` to modify
+the stability rating of one or more implementations in a feed with a specific URI.
+This is useful, e.g., for promoting a `testing` release to `stable`.
 
 To remove a feed, `git rm repo/feeds/FEED.xml` and run `0repo` again.
 
@@ -230,12 +234,11 @@ Retracting a release
 --------------------
 
 If you make a release and then want to remove it, you have several options. You can
-edit the feed in the `feeds` directory and set the stability to `buggy`, e.g.
+set the stability to `buggy`, e.g.
 
-    <implementation id="..." version="..." stability="buggy">
+    0repo modify http://my/feed.yml 1.0 --stability=buggy
 
-Then run `0repo update` to push the new XML to the server. The release still exists,
-but 0install will avoid selecting it by default.
+The release still exists, but 0install will avoid selecting it by default.
 
 If you've just made a release and want to remove it completely, you can `git revert`
 the commit that added it. Use `git log` to see the last log entry for your feed, e.g.
