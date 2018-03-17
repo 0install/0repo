@@ -19,11 +19,16 @@ def handle(args):
 	except subprocess.CalledProcessError as ex:
 		raise SafeException("GPG key '{key}' not found ({ex})".format(key = args.key, ex = ex))
 
+	in_ssb = False
 	fingerprint = None
 	for line in keys.split('\n'):
 		bits = line.split(':')
-		if bits[0] == 'fpr':
-			if fingerprint is None:
+		if bits[0] == 'ssb': in_ssb = True
+		elif bits[0] == 'sec': in_ssb = False
+		elif bits[0] == 'fpr':
+			if in_ssb and fingerprint is not None:
+				pass	# Ignore sub-keys (unless we don't have a primary - can that happen?)
+			elif fingerprint is None:
 				fingerprint = bits[9]
 			else:
 				raise SafeException("Multiple GPG keys match '{key}':\n{output}".format(
