@@ -39,3 +39,5 @@ def handle(args):
 		new_xml = formatting.format_doc(doc)
 		incoming.write_to_git(feed_path, new_xml, commit_msg, config)
 		update.do_update(config)
+	else:
+		print("No changes made.")
