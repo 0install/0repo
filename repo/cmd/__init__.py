@@ -22,6 +22,11 @@ def main(argv):
 	parser_import.add_argument('path', metavar='PATH', nargs='+',
 			   help='the signed feeds to import')
 
+	parser_modify = subparsers.add_parser('modify', help='modify implementations in an existing feed')
+	parser_modify.add_argument('uri', metavar='URI', help='the URI of the feed to modify')
+	parser_modify.add_argument('id', metavar='ID', help='the ID or version number of the implementations to modify')
+	parser_modify.add_argument('--stability', metavar='STABILITY', help='the new stability rating to set for the implementations')
+
 	parser_create = subparsers.add_parser('create', help='create a new repository')
 	parser_create.add_argument('path', metavar='DIR',
 			   help='the directory to create to hold the new repository')
