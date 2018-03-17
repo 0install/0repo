@@ -276,6 +276,10 @@ class Test0Repo(unittest.TestCase):
 		out = run_repo(['add', join(mydir, 'imported.xml')])
 		assert os.path.exists(join('public', 'tests', 'imported.xml'))
 
+		# Update stability
+		out = run_repo(['modify', 'http://example.com/myrepo/tests/test.xml', '4', '--stability=buggy'])
+		assert 'Updated public/tests/test.xml' in out, out
+
 		# Check stability levels
 		with open(join('public', 'tests', 'test.xml'), 'rb') as stream:
 			stream, sigs = gpg.check_stream(stream)
@@ -285,7 +289,7 @@ class Test0Repo(unittest.TestCase):
 		self.assertEqual(model.testing, feed.implementations["sha1new=4f860b217bb94723ad6af9062d25dc7faee6a7ae"].get_stability())
 		self.assertEqual(model.stable, feed.implementations['version2'].get_stability())
 		self.assertEqual(model.testing, feed.implementations['version3'].get_stability())
-		self.assertEqual(model.testing, feed.implementations['version4'].get_stability())
+		self.assertEqual(model.buggy, feed.implementations['version4'].get_stability())
 
 	def testRegister(self):
 		self.assertEqual(None, registry.lookup("http://example.com/myrepo/foo.xml", missing_ok = True))
