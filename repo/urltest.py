@@ -9,7 +9,7 @@ import ftplib
 
 from zeroinstall import SafeException
 
-def get_http_size(url, ttl = 3):
+def get_http_size(url, ttl = 3, method = None):
 	address = urlparse.urlparse(url)
 
 	if url.lower().startswith('http://'):
@@ -25,16 +25,25 @@ def get_http_size(url, ttl = 3):
 	else:
 		path = ''
 
-	if address.hostname.endswith('.s3.amazonaws.com'):
-		method = 'GET'	# HEAD doesn't work on S3 due to signature mismatch
-	else:
-		method = 'HEAD'
+	if method is None:
+		if address.hostname.endswith('.s3.amazonaws.com'):
+			method = 'GET'	# HEAD doesn't work on S3 due to signature mismatch
+		else:
+			method = 'HEAD'
 
 	http.request(method, '/' + path, headers = {'Host': address.hostname, 'User-agent': '0repo (http://0install.net/0repo.html)'})
 	response = http.getresponse()
 	try:
 		if response.status == 200:
-			return int(response.getheader('Content-Length'))
+			l = response.getheader('Content-Length')
+			if l is None:
+				if method == "HEAD":
+					print("No Content-Length header returned; requesting whole archive...")
+					return get_http_size(url, ttl, method = "GET")
+				else:
+					return len(response.read())
+			else:
+				return int(l)
 		elif response.status in (301, 302, 303):
 			new_url_rel = response.getheader('Location') or response.getheader('URI')
 			new_url = urlparse.urljoin(url, new_url_rel)
