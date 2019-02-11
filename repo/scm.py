@@ -34,7 +34,12 @@ def uid_from_fingerprint(keyid):
 
 def commit(cwd, paths, msg, key, extra_options = []):
 	env = os.environ.copy()
-	name, email = uid_from_fingerprint(key)
+
+	if key:
+		name, email = uid_from_fingerprint(key)
+	else:
+		name = "0repo"
+		email = "<>"
 
 	env['GIT_COMMITTER_NAME'] = name
 	env['GIT_COMMITTER_EMAIL'] = email
@@ -46,7 +51,7 @@ def commit(cwd, paths, msg, key, extra_options = []):
 	try:
 		msg_file.write(msg.encode('utf-8'))
 		msg_file.close()
-		subprocess.check_call(['git', 'commit', '-q', '-F', msg_file.name, '-S' + key] + extra_options + ['--'] + paths,
+		subprocess.check_call(['git', 'commit', '-q', '-F', msg_file.name] + (['-S' + key] if key else []) + extra_options + ['--'] + paths,
 				      cwd = cwd,
 				      env = env)
 	finally:

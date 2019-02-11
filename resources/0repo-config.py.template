@@ -4,7 +4,7 @@ REPOSITORY_BASE_URL = "http://example.com/myrepo/"
 # The GPG secret key which 0repo should use to sign the generated feeds and any
 # Git commits it makes. The fingerprint preceeded by "0x" is the most precise
 # way to identity a key (see "HOW TO SPECIFY A USER ID" in the gpg(1) man-page
-# for other options).
+# for other options). Set this to None to disable GPG signing (e.g., for testing).
 GPG_SIGNING_KEY = "{{GPGKEY}}"
 
 # If set, XML feeds in the "incoming" directory and any Git pull requests must be signed by one of

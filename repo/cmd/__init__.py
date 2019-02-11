@@ -31,7 +31,7 @@ def main(argv):
 	parser_create.add_argument('path', metavar='DIR',
 			   help='the directory to create to hold the new repository')
 	parser_create.add_argument('key', metavar='GPGKEY',
-			   help='the GPG key used to sign the generated feeds and commits')
+			   help='the GPG key used to sign the generated feeds and commits; use "-" to disable GPG signing (e.g., for testing)')
 
 	subparsers.add_parser('register', help='add this repository location to ~/.config/...')
 

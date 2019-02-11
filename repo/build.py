@@ -22,6 +22,9 @@ feed_header = """<?xml version="1.0" ?>
 """
 
 def sign_xml(config, source_xml):
+	if not config.GPG_SIGNING_KEY:
+		return source_xml
+
 	child = subprocess.Popen(['gpg', '--detach-sign', '--default-key', config.GPG_SIGNING_KEY, '--use-agent', '--output', '-', '-'],
 			stdin = subprocess.PIPE,
 			stdout = subprocess.PIPE,
@@ -158,9 +161,11 @@ def build_public_feeds(config):
 						changed = False
 				feeds.append(PublicFeed(abspath(source_path), public_rel_path, new_doc, changed))
 
-	key_path = export_key(join('public', 'keys'), config.GPG_SIGNING_KEY)
-
-	other_files = [relpath(key_path, 'public')]
+	if config.GPG_SIGNING_KEY:
+		key_path = export_key(join('public', 'keys'), config.GPG_SIGNING_KEY)
+		other_files = [relpath(key_path, 'public')]
+	else:
+		other_files = []
 
 	for public_feed in feeds:
 		target_path = join('public', public_feed.public_rel_path)
@@ -169,7 +174,7 @@ def build_public_feeds(config):
 		if not os.path.isdir(target_dir):
 			os.makedirs(target_dir)
 
-		if config.GPG_PUBLIC_KEY_DIRECTORY:
+		if config.GPG_SIGNING_KEY and config.GPG_PUBLIC_KEY_DIRECTORY:
 			key_symlink_rel_path = join(dirname(public_feed.public_rel_path), config.GPG_PUBLIC_KEY_DIRECTORY, basename(key_path))
 			other_files.append(key_symlink_rel_path)
 			key_symlink_path = join('public', key_symlink_rel_path)
