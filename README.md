@@ -45,7 +45,7 @@ Features:
 Setup
 -----
 
-If you're setting up a repository for a single developer then you can use use
+If you're setting up a repository for a single developer then you can use
 your existing personal GPG key (if you have one). Otherwise, you should create
 a new one:
 
