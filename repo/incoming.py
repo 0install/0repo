@@ -129,7 +129,7 @@ def process(config, xml_file, delete_on_success):
 				print("Already imported {feed}; skipping".format(feed = feed_path))
 				if delete_on_success:
 					os.unlink(xml_file)
-				return None
+				return None, []
 			else:
 				raise SafeException("Can't import '{url}'; non-identical feed {path} already exists.\n\n"
 						    "To ADD new versions to this feed, remove the a 'uri' attribute from "
@@ -167,7 +167,7 @@ def process(config, xml_file, delete_on_success):
 			msg, previous_commit_xml = get_last_commit(git_path)
 			if previous_commit_xml == xml_text:
 				print("Already merged this into {feed}; skipping".format(feed = feed_path))
-				return msg
+				return msg, []
 			raise ex
 
 		new_xml = None	# (will regenerate from new_doc below)
@@ -187,13 +187,11 @@ def process(config, xml_file, delete_on_success):
 
 	write_to_git(feed_path, new_xml, commit_msg, config, new_file)
 
-	# Delete XML and archives from incoming directory
+	# Delete XML from incoming directory
 	if delete_on_success:
 		os.unlink(xml_file)
-		for archive in processed_archives:
-			os.unlink(archive.incoming_path)
 
-	return commit_msg.split('\n', 1)[0]
+	return commit_msg.split('\n', 1)[0], [archive.incoming_path for archive in processed_archives]
 
 def process_incoming_dir(config):
 	"""Current directory contains 'incoming'."""
@@ -204,16 +202,22 @@ def process_incoming_dir(config):
 			new_xml.append(i)
 
 	messages = []
+	archive_paths = set()
 
 	if new_xml:
 		for xml in sorted(new_xml):
 			print("Processing", xml)
-			msg = process(config, os.path.join('incoming', xml), delete_on_success = True)
+			msg, paths = process(config, os.path.join('incoming', xml), delete_on_success = True)
 			if msg:
 				messages.append(msg)
+			for path in paths:
+				archive_paths.add(path)
 	else:
 		pass #print('No .xml files in "incoming" directory (nothing to process)')
-	
+
+	for path in archive_paths:
+		os.unlink(path)
+
 	return messages
 
 def create_from_local(master_feed_url, new_impls_feed):

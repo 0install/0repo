@@ -32,7 +32,7 @@ def handle(args):
 	messages = []
 	for feed in files:
 		print("Adding", feed)
-		msg = incoming.process(config, feed, delete_on_success = False)
+		msg, _ = incoming.process(config, feed, delete_on_success = False)
 		if msg:
 			messages.append(msg)
 	update.do_update(config, messages = messages)
