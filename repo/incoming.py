@@ -75,6 +75,9 @@ def ask_if_previous_still_testing(master_doc, new_version):
 			impl.setAttribute('stability', 'stable')
 
 def process(config, xml_file, delete_on_success):
+	"""Import xml_file into the repository.
+	   On success, returns a summary message and the list of archive paths (in incoming) used."""
+
 	# Step 1 : check everything looks sensible, reject if not
 
 	with open(xml_file, 'rb') as stream:
