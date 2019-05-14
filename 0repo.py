@@ -4,7 +4,7 @@ import sys
 from repo import cmd
 from zeroinstall import SafeException
 
-version = '0.7'
+version = '0.8'
 
 try:
 	cmd.main(sys.argv)
