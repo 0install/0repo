@@ -35,8 +35,14 @@ def uid_from_fingerprint(keyid):
 def commit(cwd, paths, msg, key, extra_options = []):
 	env = os.environ.copy()
 
+	gpg_override_applied = False
 	if key:
 		name, email = uid_from_fingerprint(key)
+
+		# Force Git for Windows to use same version of GnuPG as 0repo
+		if os.name == 'nt' and 'GNUPG_PATH' in env:
+			subprocess.check_call(['git', 'config', 'gpg.program', env['GNUPG_PATH']], cwd = cwd)
+			gpg_override_applied = True
 	else:
 		name = "0repo"
 		email = "<>"
@@ -55,5 +61,7 @@ def commit(cwd, paths, msg, key, extra_options = []):
 				      cwd = cwd,
 				      env = env)
 	finally:
+		if gpg_override_applied:
+			subprocess.check_call(['git', 'config', '--unset', 'gpg.program'], cwd = cwd)
 		msg_file.close()
 		os.remove(msg_file.name)

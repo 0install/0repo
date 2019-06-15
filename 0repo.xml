@@ -43,6 +43,7 @@
 
     <requires interface="http://repo.roscidus.com/security/gnupg">
       <executable-in-path name="gpg"/>
+      <executable-in-var name="GNUPG_PATH"/>
     </requires>
 
     <implementation id="." version="0.8-post"/>
