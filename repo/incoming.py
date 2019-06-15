@@ -266,7 +266,7 @@ def write_to_git(feed_path, new_xml, commit_msg, config, new_file = False):
 			did_git_add = True
 
 		# (this must be last in the try block)
-		scm.commit('feeds', [git_path], commit_msg, key = config.GPG_SIGNING_KEY)
+		scm.commit('feeds', [git_path], commit_msg, key = config.GPG_SIGNING_KEY if getattr(config, 'SIGN_COMMITS', True) else None)
 	except Exception as ex:
 		# Roll-back (we didn't commit to Git yet)
 		print(ex)
