@@ -188,7 +188,7 @@ def build_public_feeds(config):
 
 		if not public_feed.changed: continue
 
-		path_to_resources = relpath(join('public', 'resources'), dirname(target_path))
+		path_to_resources = relpath(join('public', 'resources'), dirname(target_path)).replace(os.sep, '/')
 		new_xml = (feed_header % path_to_resources).encode('utf-8') + public_feed.doc.documentElement.toxml('utf-8') + '\n'
 
 		signed_xml = sign_xml(config, new_xml)
