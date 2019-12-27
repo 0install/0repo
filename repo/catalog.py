@@ -34,6 +34,9 @@ def write_catalogs(config, feeds):
 		catalog_files.append(write_catalog(config, feeds, dir_rel_path))
 	return catalog_files
 
+def _default_is_excluded_from_catalog(feed_root, dir_rel_path):
+	return feed_root.getElementsByTagName('replaced-by').length > 0
+
 def write_catalog(config, feeds, dir_rel_path):
 	cat_ns = namespace.Namespace()
 	cat_ns.register_namespace(XMLNS_CATALOG, "c")
@@ -55,11 +58,10 @@ def write_catalog(config, feeds, dir_rel_path):
 	def get_name(feed_root):
 		return feed_root.getElementsByTagName('name')[0].firstChild.wholeText
 
-	def is_replaced(feed_root):
-		return feed_root.getElementsByTagName('replaced-by').length > 0
+	is_excluded_from_catalog = getattr(config, 'is_excluded_from_catalog', _default_is_excluded_from_catalog)
 
 	for feed_root in sorted(feed_roots, key=get_name):
-		if is_replaced(feed_root): continue
+		if is_excluded_from_catalog(feed_root, dir_rel_path): continue
 		elem = cat_doc.createElementNS(XMLNS_IFACE, "interface")
 		elem.setAttribute('uri', feed_root.getAttribute("uri"))
 		for feed_elem in feed_root.childNodes:

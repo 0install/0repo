@@ -92,6 +92,7 @@ These are optional:
 - `CHECK_DIGESTS`: Recalculate digests specified for local archives in incoming feeds
 - `TRACK_TESTING_IMPLS`: Prompt about old implementations that are "testing" too long
 - `GPG_PUBLIC_KEY_DIRECTORY`: Path relative to each feed to place the GPG key
+- `is_excluded_from_catalog`: Controls whether feed should be excluded from generated catalog
 - `check_uploaded_archive`: Check to verify archive has been uploaded correctly
 - `check_external_archive`: Check to verify URL of external archive is correct
 

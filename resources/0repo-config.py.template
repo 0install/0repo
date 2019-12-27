@@ -195,6 +195,14 @@ def get_feeds_rel_path(uri_rel_path):
 def get_public_rel_path(feeds_rel_path):
 	return feeds_rel_path
 
+# is_excluded_from_catalog controls wether a specific feed should be excluded from
+# the generated catalog. By default this excludes any feed that has been marked as
+# replaced by another feed.
+# feed_root = the feed's XML data
+# dir_rel_path = the relative path of the directory of the catalog being generated
+#def is_excluded_from_catalog(feed_root, dir_rel_path):
+#	return feed_root.getElementsByTagName('replaced-by').length > 0
+
 # When 0install fetches a feed http://.../prog.xml, it looks for the GPG key
 # at http://.../KEY.gpg.
 #
