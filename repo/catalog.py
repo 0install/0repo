@@ -4,7 +4,8 @@
 from __future__ import print_function
 
 import os
-from os.path import join
+from os.path import dirname, join, relpath
+import collections
 from xml.dom import minidom
 from xml.dom import XMLNS_NAMESPACE
 
@@ -17,12 +18,23 @@ from . import namespace, build
 XMLNS_CATALOG = "http://0install.de/schema/injector/catalog"
 
 catalog_header = b'''<?xml version="1.0" encoding="utf-8"?>
-<?xml-stylesheet type='text/xsl' href='resources/catalog.xsl'?>
+<?xml-stylesheet type='text/xsl' href='%s/catalog.xsl'?>
 '''
 
 catalog_names = frozenset(["name", "summary", "description", "homepage", "icon", "category", "entry-point"])
 
-def write_catalog(config, feeds):
+def write_catalogs(config, feeds):
+	feeds_by_directory = collections.defaultdict(lambda: [])
+	for feed in feeds:
+		feeds_by_directory[dirname(feed.public_rel_path)].append(feed)
+	feeds_by_directory[''] = feeds
+
+	catalog_files = []
+	for dir_rel_path, feeds in feeds_by_directory.items():
+		catalog_files.append(write_catalog(config, feeds, dir_rel_path))
+	return catalog_files
+
+def write_catalog(config, feeds, dir_rel_path):
 	cat_ns = namespace.Namespace()
 	cat_ns.register_namespace(XMLNS_CATALOG, "c")
 
@@ -56,8 +68,8 @@ def write_catalog(config, feeds):
 				(ns in custom_tags and feed_elem.localName in custom_tags[ns])):
 				elem.appendChild(cat_ns.import_node(cat_doc, feed_elem))
 		cat_root.appendChild(elem)
-	
-	catalog_file = join('public', 'catalog.xml')
+
+	catalog_file = join('public', dir_rel_path, 'catalog.xml')
 
 	need_update = True
 	if os.path.exists(catalog_file):
@@ -66,10 +78,11 @@ def write_catalog(config, feeds):
 		need_update = not xmltools.nodes_equal(old_catalog.documentElement, cat_doc.documentElement)
 
 	if need_update:
-		new_data = build.sign_xml(config, catalog_header + cat_doc.documentElement.toxml(encoding = 'utf-8') + '\n')
+		path_to_resources = relpath('resources', dir_rel_path).replace(os.sep, '/')
+		new_data = build.sign_xml(config, (catalog_header % path_to_resources) + cat_doc.documentElement.toxml(encoding = 'utf-8') + '\n')
 		with open(catalog_file + '.new', 'wb') as stream:
 			stream.write(new_data)
 		support.portable_rename(catalog_file + '.new', catalog_file)
-		print("Updated catalog.xml")
+		print("Updated " + catalog_file)
 
-	return ['catalog.xml']
+	return join(dir_rel_path, 'catalog.xml')
