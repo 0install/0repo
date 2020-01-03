@@ -26,7 +26,7 @@ def do_update(config, messages = None):
 
 	files += [f.public_rel_path for f in feeds]
 
-	files += catalog.write_catalog(config, feeds)
+	files += catalog.write_catalogs(config, feeds)
 
 	feeds_dir = abspath('feeds')
 

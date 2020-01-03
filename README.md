@@ -64,28 +64,37 @@ configuration).
 
 Within this directory you will find:
 
-- 0repo-config.py - configuration settings
-- feeds	          - directory of (unsigned) feeds, initially empty
-- feeds/.git	  - version control Git repository for the feeds
-- incoming	  - queue of incoming files to be processed
-- public	  - output directory (to be rsync'd to hosting provider)
+- `0repo-config.py`: configuration settings
+- `feeds`: directory of (unsigned) feeds, initially empty
+- `feeds/.git`: version control Git repository for the feeds
+- `incoming`: queue of incoming files to be processed
+- `public`: output directory (to be synced to hosting provider)
 
-Edit 0repo-config.py and set the required parameters:
+Edit `0repo-config.py` and set the required parameters:
 
-These are required:
+These constants and functions must be set:
 
 - `REPOSITORY_BASE_URL`: The base URL for the feeds
 - `ARCHIVES_BASE_URL`: The base URL for the archives
 - `GPG_SIGNING_KEY`: Should be already set to the key you specified
+- `upload_public_dir`: Code to upload feeds to web hosting
+- `get_feeds_rel_path`: Part of the feed's URL following `REPOSITORY_BASE_URL`
+- `get_public_rel_path`: Path of feed generated (signed) feed placed under `public`
 
 These are optional:
 
+- `SIGN_COMMITS`: Whether 0repo should sign Git commits it makes
 - `CONTRIBUTOR_GPG_KEYS`: GPG keys of trusted contributors
-- `upload_public_dir`: Code to upload feeds to web hosting
 - `LOCAL_ARCHIVES_BACKUP_DIR`: Where to keep local copies of uploaded archives
 - `get_archive_rel_url`: Layout of your file server (e.g. a single directory or nested)
 - `check_new_impl`: Policy checks for new code (e.g. check license is present and acceptable)
 - `upload_archives`: Code to upload archives to archive hosting
+- `CHECK_DIGESTS`: Recalculate digests specified for local archives in incoming feeds
+- `TRACK_TESTING_IMPLS`: Prompt about old implementations that are "testing" too long
+- `GPG_PUBLIC_KEY_DIRECTORY`: Path relative to each feed to place the GPG key
+- `is_excluded_from_catalog`: Controls whether feed should be excluded from generated catalog
+- `check_uploaded_archive`: Check to verify archive has been uploaded correctly
+- `check_external_archive`: Check to verify URL of external archive is correct
 
 Finally, register this repository so that other tools can find it (you need to do this after setting `REPOSITORY_BASE_URL`):
 
