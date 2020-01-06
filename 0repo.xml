@@ -9,7 +9,7 @@
     a web-server, or as a service which accepts signed updates from a group
     of developers.
   </description>
-  <homepage>http://0install.net/0repo.html</homepage>
+  <homepage>https://docs.0install.net/tools/0repo/</homepage>
 
   <release:management xmlns:release="http://zero-install.sourceforge.net/2007/namespaces/0release">
     <!-- Update the copy of the version number in the code -->
@@ -20,15 +20,15 @@
 
   <group license="OSI Approved :: GNU Lesser General Public License (LGPL)">
     <command name="run" path="0repo.py">
-      <runner interface="http://repo.roscidus.com/python/python"/>
+      <runner interface="https://apps.0install.net/python/python.xml"/>
     </command>
 
     <command name="test" path="tests/runall.py">
-      <runner interface="http://repo.roscidus.com/python/python"/>
+      <runner interface="https://apps.0install.net/python/python.xml"/>
       <executable-in-path name="0repo"/>
     </command>
 
-    <requires interface="http://repo.roscidus.com/python/python">
+    <requires interface="https://apps.0install.net/python/python.xml">
       <version before="3" not-before="2.7"/>
     </requires>
 
@@ -37,11 +37,11 @@
       <version not-before="2.2-post"/>
     </requires>
 
-    <requires interface="http://repo.roscidus.com/git/core">
+    <requires interface="https://apps.0install.net/devel/git.xml">
       <executable-in-path name="git"/>
     </requires>
 
-    <requires interface="http://repo.roscidus.com/security/gnupg">
+    <requires interface="https://apps.0install.net/utils/gnupg.xml">
       <executable-in-path name="gpg"/>
       <executable-in-var name="GNUPG_PATH"/>
     </requires>
