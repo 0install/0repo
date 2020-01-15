@@ -1,7 +1,7 @@
 # Copyright (C) 2013, Thomas Leonard
 # See the README file for details, or visit http://0install.net.
 
-from __future__ import print_function
+
 
 import os
 from os.path import dirname, join, relpath
@@ -30,7 +30,7 @@ def write_catalogs(config, feeds):
 	feeds_by_directory[''] = feeds
 
 	catalog_files = []
-	for dir_rel_path, feeds in feeds_by_directory.items():
+	for dir_rel_path, feeds in list(feeds_by_directory.items()):
 		catalog_files.append(write_catalog(config, feeds, dir_rel_path))
 	return catalog_files
 

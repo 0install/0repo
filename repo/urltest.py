@@ -1,21 +1,21 @@
 # Copyright (C) 2013, Thomas Leonard
 # See the README file for details, or visit http://0install.net.
 
-from __future__ import print_function
 
-import urlparse
-import httplib
+
+import urllib.parse
+import http.client
 import ftplib
 
 from zeroinstall import SafeException
 
 def get_http_size(url, ttl = 3, method = None):
-	address = urlparse.urlparse(url)
+	address = urllib.parse.urlparse(url)
 
 	if url.lower().startswith('http://'):
-		http = httplib.HTTPConnection(address.hostname, address.port or 80)
+		http = http.client.HTTPConnection(address.hostname, address.port or 80)
 	elif url.lower().startswith('https://'):
-		http = httplib.HTTPSConnection(address.hostname, address.port or 443)
+		http = http.client.HTTPSConnection(address.hostname, address.port or 443)
 	else:
 		assert False, url
 
@@ -46,7 +46,7 @@ def get_http_size(url, ttl = 3, method = None):
 				return int(l)
 		elif response.status in (301, 302, 303):
 			new_url_rel = response.getheader('Location') or response.getheader('URI')
-			new_url = urlparse.urljoin(url, new_url_rel)
+			new_url = urllib.parse.urljoin(url, new_url_rel)
 		else:
 			raise SafeException("HTTP error: got status code %s for %s" % (response.status, url))
 	finally:
@@ -61,7 +61,7 @@ def get_http_size(url, ttl = 3, method = None):
 		raise SafeException('Too many redirections.')
 
 def get_ftp_size(url):
-	address = urlparse.urlparse(url)
+	address = urllib.parse.urlparse(url)
 	ftp = ftplib.FTP(address.hostname)
 	try:
 		ftp.login()
@@ -73,7 +73,7 @@ def get_ftp_size(url):
 def get_size(url):
 	print("Checking {url}... ".format(url = url), end = '')
 	try:
-		scheme = urlparse.urlparse(url)[0].lower()
+		scheme = urllib.parse.urlparse(url)[0].lower()
 		if scheme.startswith('http') or scheme.startswith('https'):
 			size = get_http_size(url)
 		elif scheme.startswith('ftp'):

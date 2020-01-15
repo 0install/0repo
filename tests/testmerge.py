@@ -1,11 +1,11 @@
-import sys, os, StringIO
+import sys, os, io
 from zeroinstall.injector.namespaces import XMLNS_IFACE
 from zeroinstall.injector import model, qdom
 from zeroinstall.support import xmltools
 import unittest
 from xml.dom import minidom
 
-ByteIO = StringIO.StringIO
+ByteIO = io.StringIO
 
 sys.path.insert(0, '..')
 
@@ -77,7 +77,7 @@ local_file_zi13 = os.path.join(os.path.dirname(__file__), 'zeroinstall-injector-
 local_file_zi13_int = os.path.join(os.path.dirname(__file__), 'zeroinstall-injector-int-1.3.xml')
 
 def tap(s):
-	print s
+	print(s)
 	return s
 
 class TestMerge(unittest.TestCase):

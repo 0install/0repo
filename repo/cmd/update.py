@@ -1,7 +1,7 @@
 # Copyright (C) 2013, Thomas Leonard
 # See the README file for details, or visit http://0install.net.
 
-from __future__ import print_function
+
 
 import time
 import os
@@ -75,8 +75,8 @@ def graduation_check(feeds, feeds_dir):
 			zfeed = model.ZeroInstallFeed(qdom.parse(stream))
 			if zfeed.implementations:
 				# Find the latest version number (note that there may be several implementations with this version number)
-				latest_version = max(impl.version for impl in zfeed.implementations.values())
-				testing_impls = [impl for impl in zfeed.implementations.values()
+				latest_version = max(impl.version for impl in list(zfeed.implementations.values()))
+				testing_impls = [impl for impl in list(zfeed.implementations.values())
 						 if impl.version == latest_version and
 						    impl.upstream_stability == model.stability_levels['testing'] and
 						    age(impl) > TIME_TO_GRADUATE]

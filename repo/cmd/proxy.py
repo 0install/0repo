@@ -1,13 +1,13 @@
-from __future__ import print_function
+
 
 import os
 import traceback
 from repo import cmd
 
-from SimpleHTTPServer import SimpleHTTPRequestHandler
-from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
-import urllib2
-from SocketServer import ThreadingMixIn
+from http.server import SimpleHTTPRequestHandler
+from http.server import BaseHTTPRequestHandler, HTTPServer
+import urllib.request, urllib.error, urllib.parse
+from socketserver import ThreadingMixIn
 
 def handle(args):
 	cmd.find_config()
@@ -51,8 +51,8 @@ def handle(args):
 						traceback.print_exc()
 						self.send_error(404, "GET Not Found: %s" % rel_path)
 				else:
-					stream = urllib2.urlopen(self.path)
-					send(stream, stream.headers.items())
+					stream = urllib.request.urlopen(self.path)
+					send(stream, list(stream.headers.items()))
 			except:
 				traceback.print_exc()
 				self.send_response(500)

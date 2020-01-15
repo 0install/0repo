@@ -4,8 +4,8 @@ import shutil
 import subprocess
 import os, sys
 import imp
-import __builtin__
-from StringIO import StringIO
+import builtins
+from io import StringIO
 
 from os.path import join
 
@@ -47,7 +47,7 @@ class TestAPI:
 			if 'INVALID' not in archive.rel_url:
 				responses['/myrepo/archives/' + archive.rel_url] = FakeResponse(archive.size)
 
-__builtin__.test0repo = TestAPI
+builtins.test0repo = TestAPI
 
 class FakeHttpLib:
 	class HTTPConnection:

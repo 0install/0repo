@@ -1,7 +1,7 @@
 # Copyright (C) 2013, Thomas Leonard
 # See the README file for details, or visit http://0install.net.
 
-from __future__ import print_function
+
 
 import json
 
@@ -18,7 +18,7 @@ def lookup(uri, missing_ok = False):
 		db = {}
 	
 	from_registry = None
-	for key, value in db.items():
+	for key, value in list(db.items()):
 		if uri.startswith(key):
 			if from_registry:
 				raise SafeException("Multiple matching repositories! {a} and {b}".format(
