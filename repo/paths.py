@@ -15,7 +15,7 @@ def group_by_target_url_dir(archives):
 	results = collections.defaultdict(lambda: [])		# rel_url -> [basename]
 	for archive in archives:
 		results[dirname(archive.rel_url)].append(archive.source_path)
-	return results.items()
+	return list(results.items())
 
 def ensure_safe(rel_path):
 	"""Ensure path is relative and doesn't contain '.', '..' or other hidden components. Also,

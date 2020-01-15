@@ -1,7 +1,7 @@
 # Copyright (C) 2018, Bastian Eicher
 # See the README file for details, or visit http://0install.net.
 
-from __future__ import print_function
+
 
 import os
 from os.path import join

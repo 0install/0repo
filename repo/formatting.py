@@ -1,7 +1,7 @@
 # Copyright (C) 2013, Thomas Leonard
 # See the README file for details, or visit http://0install.net.
 
-from StringIO import StringIO
+from io import BytesIO
 
 from xml.dom import Node
 
@@ -35,7 +35,7 @@ def format_doc(doc):
 	"""Note: modifies 'doc'."""
 	format_node(doc.documentElement, "\n")
 
-	b = StringIO()
+	b = BytesIO()
 	b.write(b'<?xml version="1.0" ?>\n')
 	b.write(doc.documentElement.toxml(encoding = 'utf-8'))
 	b.write(b'\n')

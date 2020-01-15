@@ -1,7 +1,7 @@
 # Copyright (C) 2013, Thomas Leonard
 # See the README file for details, or visit http://0install.net.
 
-from __future__ import print_function
+
 
 import os, shutil, hashlib, collections, re
 from os.path import join, basename, dirname, abspath
@@ -188,7 +188,7 @@ def process_archives(config, incoming_dir, feed):
 	# Pick a digest to check (maybe we should check all of them?)
 	# Find required archives and check they're in 'incoming'
 	archives = []
-	for impl in feed.implementations.values():
+	for impl in list(feed.implementations.values()):
 		required_digest = pick_digest(impl)
 		for method in impl.download_sources:
 			archives += process_method(config, incoming_dir, impl, method, required_digest)

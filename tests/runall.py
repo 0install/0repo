@@ -7,7 +7,7 @@ try:
 	import coverage
 except ImportError:
 	cov = None
-	print "Coverage module not found. Skipping coverage report."
+	print("Coverage module not found. Skipping coverage report.")
 else:
 	if len(sys.argv) > 1:
 		cov = None
@@ -33,10 +33,11 @@ else:
 
 a = unittest.TextTestRunner(verbosity=2).run(alltests)
 
-print "\nResult", a
+print("\nResult", a)
 if not a.wasSuccessful():
 	sys.exit(1)
 
 if cov:
 	cov.stop()
 	cov.report()
+	#cov.html_report(directory=os.path.join(my_dir, 'covhtml'))

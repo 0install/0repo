@@ -26,7 +26,7 @@ class Namespace(object):
 		# Find a variation on 'prefix' that isn't used yet, if necessary
 		orig_prefix = prefix
 		n = 0
-		while prefix in self.namespace_prefixes.values():
+		while prefix in list(self.namespace_prefixes.values()):
 			#print "Prefix %s already in %s, not %s" % (prefix, self.namespace_prefixes, namespace)
 			n += 1
 			prefix = orig_prefix + str(n)

@@ -1,7 +1,7 @@
 # Copyright (C) 2013, Thomas Leonard
 # See the README file for details, or visit http://0install.net.
 
-from __future__ import print_function
+
 
 import os, subprocess
 from io import BytesIO
@@ -31,12 +31,13 @@ def get_feed_url(root, path):
 
 def get_last_commit(feed_path):
 	"""Get the (subject, XML) of the last commit."""
-	return subprocess.check_output(['git', 'log', '-n', '1', '--pretty=format:%s%n%b', '--', feed_path], cwd = 'feeds').split('\n',1)
+	msg, body = subprocess.check_output(['git', 'log', '-n', '1', '--pretty=format:%s%n%b', '--', feed_path], cwd = 'feeds').split(b'\n',1)
+	return (msg.decode(), body)
 
 def get_choice(options):
 	while True:
 		try:
-			choice = raw_input('/'.join(options) + ': ').lower()
+			choice = input('/'.join(options) + ': ').lower()
 		except EOFError:
 			return None
 		if not choice: continue
@@ -49,14 +50,14 @@ def ask_if_previous_still_testing(master_doc, new_version):
 	xml = master_doc.toxml(encoding = 'utf-8')
 	master = model.ZeroInstallFeed(qdom.parse(BytesIO(xml)))
 
-	previous_versions = [impl.version for impl in master.implementations.values() if impl.version < new_version_parsed]
+	previous_versions = [impl.version for impl in list(master.implementations.values()) if impl.version < new_version_parsed]
 	if not previous_versions:
 		return
 
 	previous_version = max(previous_versions)
 
 	# (all the <implementations> with this version number)
-	previous_testing_impls = [impl for impl in master.implementations.values()
+	previous_testing_impls = [impl for impl in list(master.implementations.values())
 					if impl.version == previous_version
 					and impl.upstream_stability == model.testing]
 
@@ -82,7 +83,7 @@ def process(config, xml_file, delete_on_success):
 
 	with open(xml_file, 'rb') as stream:
 		xml_text = stream.read()
-		sig_index = xml_text.rfind('\n<!-- Base64 Signature')
+		sig_index = xml_text.rfind(b'\n<!-- Base64 Signature')
 		if sig_index != -1:
 			stream.seek(0)
 			stream, sigs = gpg.check_stream(stream)
@@ -110,7 +111,7 @@ def process(config, xml_file, delete_on_success):
 	feed = model.ZeroInstallFeed(root)
 
 	# Perform custom checks defined by the repository owner
-	for impl in feed.implementations.values():
+	for impl in list(feed.implementations.values()):
 		problem = config.check_new_impl(impl)
 		if problem:
 			raise SafeException("{problem} in {xml_file}\n(this check was configured in {config}: check_new_impl())".format(
@@ -148,7 +149,7 @@ def process(config, xml_file, delete_on_success):
 			name = basename(dirname(xml_file))
 		action = 'Imported {file}'.format(file = name)
 	else:
-		versions = set(i.get_version() for i in feed.implementations.values())
+		versions = set(i.get_version() for i in list(feed.implementations.values()))
 		action = 'Added {name} {versions}'.format(name = feed.get_name(), versions = ', '.join(versions))
 	commit_msg = '%s\n\n%s' % (action, xml_text.decode('utf-8'))
 
@@ -183,7 +184,7 @@ def process(config, xml_file, delete_on_success):
 
 	# Regenerate merged feed
 	if new_xml is None:
-		new_versions = frozenset(impl.get_version() for impl in feed.implementations.values())
+		new_versions = frozenset(impl.get_version() for impl in list(feed.implementations.values()))
 		if len(new_versions) == 1 and getattr(config, 'TRACK_TESTING_IMPLS', True):
 			ask_if_previous_still_testing(new_doc, list(new_versions)[0])
 		new_xml = formatting.format_doc(new_doc)

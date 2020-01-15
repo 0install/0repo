@@ -1,11 +1,9 @@
-import sys, os, StringIO
+import sys, os, io
 from zeroinstall.injector.namespaces import XMLNS_IFACE
 from zeroinstall.injector import model, qdom
 from zeroinstall.support import xmltools
 import unittest
 from xml.dom import minidom
-
-ByteIO = StringIO.StringIO
 
 sys.path.insert(0, '..')
 
@@ -23,13 +21,13 @@ footer = """
 """
 
 def parse(xml):
-	stream = ByteIO(xml)
+	stream = io.BytesIO(xml)
 	return model.ZeroInstallFeed(qdom.parse(stream))
 
 def do_merge(master_xml, new_impl_path):
 	# The tests were originally written for 0publish. This just adapts them to the new API.
 
-	master_doc = minidom.parse(ByteIO(master_xml))
+	master_doc = minidom.parse(io.BytesIO(master_xml.encode()))
 	with open(new_impl_path, 'rb') as stream:
 		new_impl_doc = minidom.parse(stream)
 
@@ -77,7 +75,7 @@ local_file_zi13 = os.path.join(os.path.dirname(__file__), 'zeroinstall-injector-
 local_file_zi13_int = os.path.join(os.path.dirname(__file__), 'zeroinstall-injector-int-1.3.xml')
 
 def tap(s):
-	print s
+	print(s)
 	return s
 
 class TestMerge(unittest.TestCase):
@@ -94,10 +92,10 @@ class TestMerge(unittest.TestCase):
 	def testMergeTwice(self):
 		try:
 			once = do_merge(header + "<implementation id='sha1=123' version='1'/>" + footer, local_file)
-			do_merge(once, local_file)
+			do_merge(once.decode(), local_file)
 			assert 0
 		except Exception as ex:
-			assert 'Duplicate ID' in str(ex)
+			assert 'Duplicate ID' in str(ex), ex
 
 	def testMergeGroup(self):
 		master = parse(do_merge(header + "<group>\n    <implementation id='sha1=123' version='1'/>\n  </group>" + footer, local_file))

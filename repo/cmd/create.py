@@ -1,7 +1,7 @@
 # Copyright (C) 2013, Thomas Leonard
 # See the README file for details, or visit http://0install.net.
 
-from __future__ import print_function
+
 
 import os, subprocess
 from os.path import join, dirname, abspath
@@ -18,7 +18,8 @@ def handle(args):
 	else:
 		# Get the fingerprint from the key ID (and check we have the secret key)
 		try:
-			keys = subprocess.check_output(['gpg', '-q', '--fixed-list-mode', '--fingerprint', '--with-colons', '--list-secret-keys', args.key])
+			keys = subprocess.check_output(['gpg', '-q', '--fixed-list-mode', '--fingerprint', '--with-colons', '--list-secret-keys', args.key],
+					encoding='utf-8')
 		except subprocess.CalledProcessError as ex:
 			raise SafeException("GPG key '{key}' not found ({ex})".format(key = args.key, ex = ex))
 

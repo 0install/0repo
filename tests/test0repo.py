@@ -4,8 +4,8 @@ import shutil
 import subprocess
 import os, sys
 import imp
-import __builtin__
-from StringIO import StringIO
+import builtins
+from io import StringIO
 
 from os.path import join
 
@@ -47,7 +47,7 @@ class TestAPI:
 			if 'INVALID' not in archive.rel_url:
 				responses['/myrepo/archives/' + archive.rel_url] = FakeResponse(archive.size)
 
-__builtin__.test0repo = TestAPI
+builtins.test0repo = TestAPI
 
 class FakeHttpLib:
 	class HTTPConnection:
@@ -108,9 +108,7 @@ class Test0Repo(unittest.TestCase):
 		self.tmpdir = tempfile.mkdtemp('-0repo')
 		os.chdir(self.tmpdir)
 		gpghome = join(self.tmpdir, 'gnupg')
-		os.mkdir(gpghome)
-		shutil.copyfile(join(test_gpghome, 'pubring.gpg'), join(gpghome, 'pubring.gpg'))
-		shutil.copyfile(join(test_gpghome, 'secring.gpg'), join(gpghome, 'secring.gpg'))
+		shutil.copytree(test_gpghome, gpghome)
 		os.environ['GNUPGHOME'] = gpghome
 		os.chmod(gpghome, 0o700)
 
@@ -165,7 +163,7 @@ class Test0Repo(unittest.TestCase):
 			data = stream.read()
 			assert 'BEGIN PGP PUBLIC KEY BLOCK' in data, data
 
-		with open(join('public', 'catalog.xml')) as stream:
+		with open(join('public', 'catalog.xml'), 'rb') as stream:
 			catalog = qdom.parse(stream)
 		feeds = catalog.childNodes
 		self.assertEqual(1, len(feeds))

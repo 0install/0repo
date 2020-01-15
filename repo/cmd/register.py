@@ -1,7 +1,7 @@
 # Copyright (C) 2013, Thomas Leonard
 # See the README file for details, or visit http://0install.net.
 
-from __future__ import print_function
+
 
 import os
 from os.path import join
@@ -35,7 +35,7 @@ def handle(args):
 
 	db[config.REPOSITORY_BASE_URL] = entry
 
-	with open(path + '.new', 'wb') as stream:
+	with open(path + '.new', 'w') as stream:
 		json.dump(db, stream)
 	support.portable_rename(path + '.new', path)
 	

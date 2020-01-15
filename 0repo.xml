@@ -28,13 +28,10 @@
       <executable-in-path name="0repo"/>
     </command>
 
-    <requires interface="https://apps.0install.net/python/python.xml">
-      <version before="3" not-before="2.7"/>
-    </requires>
+    <requires interface="https://apps.0install.net/python/python.xml" version='3.6..'/>
 
-    <requires interface="http://0install.net/2007/interfaces/ZeroInstall.xml">
+    <requires interface="http://0install.net/2007/interfaces/ZeroInstall.xml" version='2.3.8..'>
       <environment insert="" mode="prepend" name="PYTHONPATH"/>
-      <version not-before="2.2-post"/>
     </requires>
 
     <requires interface="https://apps.0install.net/devel/git.xml">
