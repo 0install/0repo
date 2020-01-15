@@ -42,6 +42,20 @@ Features:
   externally.
 
 
+Installation
+------------
+
+To add 0repo:
+
+    0install add 0repo http://0install.net/tools/0repo.xml
+
+Note on upgrading:
+
+Starting from version 0.11, 0repo uses Python 3. Since your configuration file
+is in Python syntax, you will need to convert it to use Python 3 syntax. This
+can be done automatically by running the [2to3][] tool on it.
+
+
 Setup
 -----
 
@@ -358,3 +372,5 @@ Bug Reports
 -----------
 
 Please report any bugs to [the 0install mailing list](http://0install.net/support.html).
+
+[2to3]: https://docs.python.org/2/library/2to3.html
