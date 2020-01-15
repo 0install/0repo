@@ -10,7 +10,7 @@ from io import StringIO
 from os.path import join
 
 from zeroinstall import SafeException
-from zeroinstall.support import basedir
+from zeroinstall.support import basedir, ro_rmtree
 from zeroinstall.injector import qdom, model, gpg
 from zeroinstall.injector.namespaces import XMLNS_IFACE
 
@@ -131,7 +131,7 @@ class Test0Repo(unittest.TestCase):
 		if '0repo-config' in sys.modules:
 			del sys.modules['0repo-config']
 		os.chdir("/")
-		shutil.rmtree(self.tmpdir)
+		ro_rmtree(self.tmpdir)
 
 	def testSimple(self):
 		# (do a slow sub-process call here just to check that the top-level
