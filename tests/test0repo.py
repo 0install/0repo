@@ -108,9 +108,7 @@ class Test0Repo(unittest.TestCase):
 		self.tmpdir = tempfile.mkdtemp('-0repo')
 		os.chdir(self.tmpdir)
 		gpghome = join(self.tmpdir, 'gnupg')
-		os.mkdir(gpghome)
-		shutil.copyfile(join(test_gpghome, 'pubring.gpg'), join(gpghome, 'pubring.gpg'))
-		shutil.copyfile(join(test_gpghome, 'secring.gpg'), join(gpghome, 'secring.gpg'))
+		shutil.copytree(test_gpghome, gpghome)
 		os.environ['GNUPGHOME'] = gpghome
 		os.chmod(gpghome, 0o700)
 
