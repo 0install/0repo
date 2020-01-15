@@ -163,7 +163,7 @@ class Test0Repo(unittest.TestCase):
 			data = stream.read()
 			assert 'BEGIN PGP PUBLIC KEY BLOCK' in data, data
 
-		with open(join('public', 'catalog.xml')) as stream:
+		with open(join('public', 'catalog.xml'), 'rb') as stream:
 			catalog = qdom.parse(stream)
 		feeds = catalog.childNodes
 		self.assertEqual(1, len(feeds))

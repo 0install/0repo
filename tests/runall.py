@@ -40,3 +40,4 @@ if not a.wasSuccessful():
 if cov:
 	cov.stop()
 	cov.report()
+	#cov.html_report(directory=os.path.join(my_dir, 'covhtml'))

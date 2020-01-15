@@ -34,10 +34,10 @@ def sign_xml(config, source_xml):
 	if exit_status:
 		raise SafeException("Error signing feed: %s" % stderr)
 	if stderr:
-		print(stderr, file=sys.stderr)
+		print(stderr.decode().strip(), file=sys.stderr)
 
 	encoded = base64.encodestring(stdout)
-	sig = "<!-- Base64 Signature\n" + encoded + "\n-->\n"
+	sig = b"<!-- Base64 Signature\n" + encoded + b"\n-->\n"
 	return source_xml + sig
 
 def import_missing_archive(config, impl, archive):
@@ -127,7 +127,7 @@ def export_key(dir, signing_key):
 
 	# Convert signing_key to key ID
 	keyID = None
-	keys_output = subprocess.check_output(['gpg', '--with-colons', '--list-keys', signing_key])
+	keys_output = subprocess.check_output(['gpg', '--with-colons', '--list-keys', signing_key], encoding='utf-8')
 	for line in keys_output.split('\n'):
 		parts = line.split(':')
 		if parts[0] == 'pub':
@@ -189,7 +189,7 @@ def build_public_feeds(config):
 		if not public_feed.changed: continue
 
 		path_to_resources = relpath(join('public', 'resources'), dirname(target_path)).replace(os.sep, '/')
-		new_xml = (feed_header % path_to_resources).encode('utf-8') + public_feed.doc.documentElement.toxml('utf-8') + '\n'
+		new_xml = (feed_header % path_to_resources).encode('utf-8') + public_feed.doc.documentElement.toxml('utf-8') + b'\n'
 
 		signed_xml = sign_xml(config, new_xml)
 

@@ -4,7 +4,7 @@
 
 
 import urllib.parse
-import http.client
+import http.client as httplib
 import ftplib
 
 from zeroinstall import SafeException
@@ -13,9 +13,9 @@ def get_http_size(url, ttl = 3, method = None):
 	address = urllib.parse.urlparse(url)
 
 	if url.lower().startswith('http://'):
-		http = http.client.HTTPConnection(address.hostname, address.port or 80)
+		http = httplib.HTTPConnection(address.hostname, address.port or 80)
 	elif url.lower().startswith('https://'):
-		http = http.client.HTTPSConnection(address.hostname, address.port or 443)
+		http = httplib.HTTPSConnection(address.hostname, address.port or 443)
 	else:
 		assert False, url
 

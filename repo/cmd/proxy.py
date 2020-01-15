@@ -46,7 +46,8 @@ def handle(args):
 
 					try:
 						headers = [('Content-Length', os.stat(rel_path).st_size)]
-						send(open(rel_path), headers)
+						with open(rel_path, 'rb') as stream:
+							send(stream, headers)
 					except OSError:
 						traceback.print_exc()
 						self.send_error(404, "GET Not Found: %s" % rel_path)

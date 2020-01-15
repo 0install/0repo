@@ -50,7 +50,7 @@ def do_update(config, messages = None):
 		messages = ['0repo update']
 	config.upload_public_dir(files, message = ', '.join(messages))
 
-	out = subprocess.check_output(['git', 'status', '--porcelain'], cwd = feeds_dir).strip('\n')
+	out = subprocess.check_output(['git', 'status', '--porcelain'], cwd = feeds_dir, encoding = 'utf-8').strip('\n')
 	if out:
 		print("Note: you have uncommitted changes in {feeds}:".format(feeds = feeds_dir))
 		print(out)

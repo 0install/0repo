@@ -35,7 +35,7 @@ def handle(args):
 
 	db[config.REPOSITORY_BASE_URL] = entry
 
-	with open(path + '.new', 'wb') as stream:
+	with open(path + '.new', 'w') as stream:
 		json.dump(db, stream)
 	support.portable_rename(path + '.new', path)
 	

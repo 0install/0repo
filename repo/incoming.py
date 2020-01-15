@@ -31,7 +31,8 @@ def get_feed_url(root, path):
 
 def get_last_commit(feed_path):
 	"""Get the (subject, XML) of the last commit."""
-	return subprocess.check_output(['git', 'log', '-n', '1', '--pretty=format:%s%n%b', '--', feed_path], cwd = 'feeds').split('\n',1)
+	msg, body = subprocess.check_output(['git', 'log', '-n', '1', '--pretty=format:%s%n%b', '--', feed_path], cwd = 'feeds').split(b'\n',1)
+	return (msg.decode(), body)
 
 def get_choice(options):
 	while True:
@@ -82,7 +83,7 @@ def process(config, xml_file, delete_on_success):
 
 	with open(xml_file, 'rb') as stream:
 		xml_text = stream.read()
-		sig_index = xml_text.rfind('\n<!-- Base64 Signature')
+		sig_index = xml_text.rfind(b'\n<!-- Base64 Signature')
 		if sig_index != -1:
 			stream.seek(0)
 			stream, sigs = gpg.check_stream(stream)

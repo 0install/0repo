@@ -18,7 +18,8 @@ def handle(args):
 	else:
 		# Get the fingerprint from the key ID (and check we have the secret key)
 		try:
-			keys = subprocess.check_output(['gpg', '-q', '--fixed-list-mode', '--fingerprint', '--with-colons', '--list-secret-keys', args.key])
+			keys = subprocess.check_output(['gpg', '-q', '--fixed-list-mode', '--fingerprint', '--with-colons', '--list-secret-keys', args.key],
+					encoding='utf-8')
 		except subprocess.CalledProcessError as ex:
 			raise SafeException("GPG key '{key}' not found ({ex})".format(key = args.key, ex = ex))
 

@@ -21,7 +21,7 @@ def ensure_no_uncommitted_changes(path):
 			    'Changes are:\n{changes}'.format(feed = path, changes = stdout))
 
 def uid_from_fingerprint(keyid):
-	keys = subprocess.check_output(['gpg', '-q', '--fixed-list-mode', '--with-colons', '--list-secret-keys', keyid])
+	keys = subprocess.check_output(['gpg', '-q', '--fixed-list-mode', '--with-colons', '--list-secret-keys', keyid], encoding='utf-8')
 	for line in keys.split('\n'):
 		bits = line.split(':')
 		if bits[0] == 'uid':

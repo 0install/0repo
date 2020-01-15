@@ -37,7 +37,7 @@ from os.path import join
 def upload_public_dir(files, message):
 	# Example 1: just ask the user to upload manually
 	print("Now copy {public} to {url}".format(public = os.getcwd(), url = REPOSITORY_BASE_URL))
-	raw_input("Press Return when done (edit 0repo-config.py:upload_public_dir() to automate this)")
+	input("Press Return when done (edit 0repo-config.py:upload_public_dir() to automate this)")
 
 	# Example2: use a Git repository to sync to the hosting server
 	#
@@ -70,7 +70,7 @@ def upload_public_dir(files, message):
 		# Display a summary of all changes (including new files)
 		changed = subprocess.call(['git', 'diff', '--exit-code', '--stat', 'HEAD', '--'] + files)
 		if changed:
-			raw_input("Press Return to commit and push the above changes. CTRL-C to abort.")
+			input("Press Return to commit and push the above changes. CTRL-C to abort.")
 			subprocess.check_call(['git', 'commit', '-m', message, '--'] + files)
 			subprocess.check_call(['git', 'push'])
 		else:
@@ -120,7 +120,7 @@ def upload_archives(archives):
 		subprocess.check_call(["cp", "--"] + files + [join(archives_local_dir, dir_rel_url)])
 
 		# Example 2 : scp to remote server
-                subprocess.check_call(["scp", "--"] + files + [join("me@myserver:/home/me/webapps/myrepo/archives/" + dir_rel_url)])
+		subprocess.check_call(["scp", "--"] + files + [join("me@myserver:/home/me/webapps/myrepo/archives/" + dir_rel_url)])
 
 		# Example 3 : upload to SourceForge file release system
 		user = 'sf-user-name'
@@ -132,7 +132,7 @@ def upload_archives(archives):
 			dir_rel_url = dir_rel_url)
 		cmd = ['rsync', '-avP', '--progress', '-e', 'ssh'] + files + \
 			[user + ',' + project + '@frs.sourceforge.net:' + path]
-		print ' '.join(cmd)
+		print(' '.join(cmd))
 		subprocess.check_call(cmd)
 
 # Recalculate the manifest digests specified for local archives in incoming feeds to ensure the are correct.

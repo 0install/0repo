@@ -50,7 +50,7 @@ def main(argv):
 
 	if args.verbose == 1:
 		logging.getLogger().setLevel(logging.INFO)
-	elif args.verbose > 1:
+	elif args.verbose is not None and args.verbose > 1:
 		logging.getLogger().setLevel(logging.DEBUG)
 	
 	logging.info("Starting 0repo")
