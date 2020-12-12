@@ -309,6 +309,11 @@ Running in CI environments
 
 To completely skip GnuPG signatures (e.g., when running a CI build to verify a pull request) set the environment variable `NO_SIGN` to any non-empty value.
 
+To track the 0repo configuration in Git together with the feeds run:
+
+    mv 0repo-config.py feeds/0repo-config.py
+    ln -s feeds/0repo-config.py 0repo-config.py
+
 
 Repository files
 ----------------
