@@ -199,6 +199,7 @@ def process(config, xml_file, delete_on_success):
 
 def process_incoming_dir(config):
 	"""Current directory contains 'incoming'."""
+	os.makedirs('incoming', exist_ok=True)
 	incoming_files = os.listdir('incoming')
 	new_xml = []
 	for i in incoming_files:
