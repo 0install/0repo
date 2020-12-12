@@ -304,6 +304,12 @@ dependency to an already-released version), the contributor sends a Git pull
 request. The repository owner merges the pull request and runs 0repo.
 
 
+Running in CI environments
+--------------------------
+
+To completely skip GnuPG signatures (e.g., when running a CI build to verify a pull request) set the environment variable `NO_SIGN` to any non-empty value.
+
+
 Repository files
 ----------------
 
