@@ -21,7 +21,7 @@ catalog_header = b'''<?xml version="1.0" encoding="utf-8"?>
 <?xml-stylesheet type='text/xsl' href='%s/catalog.xsl'?>
 '''
 
-catalog_names = frozenset(["name", "summary", "description", "homepage", "icon", "category", "entry-point"])
+catalog_names = frozenset(["name", "summary", "description", "homepage", "icon", "category", "needs-terminal", "entry-point"])
 
 def write_catalogs(config, feeds):
 	feeds_by_directory = collections.defaultdict(lambda: [])
