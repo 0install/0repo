@@ -1,3 +1,10 @@
+# Some Python imports (needed for the code below) - you can leave these alone
+import os
+from repo import paths
+import subprocess
+from os.path import join
+
+
 # The URL of the directory which will host the repository (feeds, keys, stylesheets and catalogue).
 REPOSITORY_BASE_URL = "http://example.com/myrepo/"
 
@@ -5,7 +12,7 @@ REPOSITORY_BASE_URL = "http://example.com/myrepo/"
 # fingerprint preceeded by "0x" is the most precise way to identity a key (see
 # "HOW TO SPECIFY A USER ID" in the gpg(1) man-page for other options). Set
 # this to None to disable GPG signing (e.g., for testing).
-GPG_SIGNING_KEY = "{{GPGKEY}}"
+GPG_SIGNING_KEY = None if os.getenv('NO_SIGN') else "{{GPGKEY}}"
 
 # Controls whether 0repo should sign Git commits it makes.
 # Will use the same GPG secret key specified above.
@@ -17,13 +24,6 @@ SIGN_COMMITS = True
 # files don't need to be signed.
 CONTRIBUTOR_GPG_KEYS = None
 #CONTRIBUTOR_GPG_KEYS = { "DA9825AECAD089757CDABD8E07133F96CA74D8BA" }
-
-
-# Some Python imports (needed for the code below) - you can leave these alone
-import os
-from repo import paths
-import subprocess
-from os.path import join
 
 
 #### Feed hosting ####
