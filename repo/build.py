@@ -36,7 +36,7 @@ def sign_xml(config, source_xml):
 	if stderr:
 		print(stderr.decode().strip(), file=sys.stderr)
 
-	encoded = base64.encodestring(stdout)
+	encoded = base64.encodebytes(stdout)
 	sig = b"<!-- Base64 Signature\n" + encoded + b"\n-->\n"
 	return source_xml + sig
 
