@@ -16,21 +16,19 @@
     <release:action phase="commit-release">sed -i &quot;s/^version = '.*'$/version = '$RELEASE_VERSION'/&quot; 0repo.py</release:action>
   </release:management>
 
-  <feed-for interface="http://0install.net/tools/0repo.xml"/>
+  <feed-for interface="https://apps.0install.net/0install/0repo.xml"/>
 
   <group license="OSI Approved :: GNU Lesser General Public License (LGPL)">
     <command name="run" path="0repo.py">
-      <runner interface="https://apps.0install.net/python/python.xml"/>
+      <runner interface="https://apps.0install.net/python/python.xml" version="3.6.."/>
     </command>
 
     <command name="test" path="tests/runall.py">
-      <runner interface="https://apps.0install.net/python/python.xml"/>
+      <runner interface="https://apps.0install.net/python/python.xml" version="3.6.."/>
       <executable-in-path name="0repo"/>
     </command>
 
-    <requires interface="https://apps.0install.net/python/python.xml" version="3.6.."/>
-
-    <requires interface="http://0install.net/2007/interfaces/ZeroInstall.xml" version="2.3.8..">
+    <requires interface="https://apps.0install.net/0install/0install-python.xml" version="2.3.8..">
       <environment insert="" mode="prepend" name="PYTHONPATH"/>
     </requires>
 
