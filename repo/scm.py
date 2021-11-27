@@ -38,19 +38,15 @@ def commit(cwd, paths, msg, key, extra_options = []):
 	gpg_override_applied = False
 	if key:
 		name, email = uid_from_fingerprint(key)
+		env['GIT_COMMITTER_NAME'] = name
+		env['GIT_COMMITTER_EMAIL'] = email
+		env['GIT_AUTHOR_NAME'] = name
+		env['GIT_AUTHOR_EMAIL'] = email
 
 		# Force Git for Windows to use same version of GnuPG as 0repo
 		if os.name == 'nt' and 'GNUPG_PATH' in env:
 			subprocess.check_call(['git', 'config', 'gpg.program', env['GNUPG_PATH']], cwd = cwd)
 			gpg_override_applied = True
-	else:
-		name = "0repo"
-		email = "<>"
-
-	env['GIT_COMMITTER_NAME'] = name
-	env['GIT_COMMITTER_EMAIL'] = email
-	env['GIT_AUTHOR_NAME'] = name
-	env['GIT_AUTHOR_EMAIL'] = email
 
 	import tempfile
 	msg_file = tempfile.NamedTemporaryFile(delete=False)
