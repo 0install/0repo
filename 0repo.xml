@@ -41,6 +41,6 @@
       <executable-in-var name="GNUPG_PATH"/>
     </requires>
 
-    <implementation id="." version="0.13" released="2022-03-06"/>
+    <implementation id="." version="0.13-post"/>
   </group>
 </interface>
