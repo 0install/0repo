@@ -47,7 +47,7 @@ Installation
 
 To add 0repo:
 
-    0install add 0repo http://0install.net/tools/0repo.xml
+    0install add 0repo https://apps.0install.net/0install/0repo.xml
 
 Note on upgrading:
 
