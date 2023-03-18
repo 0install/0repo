@@ -1,0 +1,26 @@
+mode: ContinuousDeployment
+
+# Generate 0install-compatible version numbers
+branches:
+  # Mainline branches
+  main: 
+    tag: rc-pre
+  develop:
+    tag: pre
+    increment: patch
+
+  # Stabilization branches
+  release:
+    tag: rc
+  hotfix:
+    tag: rc
+
+  # Topic branches
+  feature:
+    tag: pre-pre
+  pull-request:
+    tag: pre-pre
+  fallback:
+    source-branches: [main]
+    regex: ^(?!main|master|develop|release|hotfix|feature|pull|pr)
+    tag: pre-pre

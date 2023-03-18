@@ -4,7 +4,7 @@ import sys
 from repo import cmd
 from zeroinstall import SafeException
 
-version = '0.13'
+version = 'git-checkout'
 
 try:
 	cmd.main(sys.argv)

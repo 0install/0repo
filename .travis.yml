@@ -1,7 +1,0 @@
-language: c
-dist: bionic
-sudo: false
-install: bash -e .travis-install.sh
-script:
-  - 0install select --command=test 0repo.xml
-  - 0test 0repo.xml
