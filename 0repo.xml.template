@@ -36,7 +36,9 @@
       <executable-in-var name="GNUPG_PATH"/>
     </requires>
 
-    <!-- Use very high version number to treat local build as newer than any public version. -->
-    <implementation id="local" version="100-pre" stability="developer" local-path="."/>
+    <implementation version="{version}" local-path=".">
+      <manifest-digest/>
+      <archive href="0repo-{version}.tar.bz2"/>
+    </implementation>
   </group>
 </interface>

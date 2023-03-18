@@ -1,2 +1,8 @@
+# Caches
 __pycache__/
 *.py[cod]
+.idea/
+
+# Output
+/0repo-*.xml
+/0repo-*.tar.bz2
