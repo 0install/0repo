@@ -13,8 +13,8 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         <meta http-equiv="Content-Language" content="de" />
         <title>Zero Install - Software Katalog</title>
-        <link rel="stylesheet" href="@REPOSITORY_BASE_URL@/resources/catalog.css" type="text/css" />
-        <script src="@REPOSITORY_BASE_URL@/resources/list.min.js"></script>
+        <link rel="stylesheet" href="@REPOSITORY_BASE_URL@resources/catalog.css" type="text/css" />
+        <script src="@REPOSITORY_BASE_URL@resources/list.min.js"></script>
         <script>
           window.addEventListener("keydown", function (e) {
             if (e.keyCode === 114 || (e.ctrlKey &amp;&amp; e.keyCode === 70)) { 

@@ -16,7 +16,7 @@ http://creativecommons.org/licenses/by-sa/2.5/
 				<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 				<meta http-equiv="Content-Language" content="de"/>
 				<title><xsl:value-of select="zi:name"/></title>
-				<link rel="stylesheet" type="text/css" href="@REPOSITORY_BASE_URL@/resources/feed.css"/>
+				<link rel="stylesheet" type="text/css" href="@REPOSITORY_BASE_URL@resources/feed.css"/>
 			</head>
 			<body>
 				<div class="site">
