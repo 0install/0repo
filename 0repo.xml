@@ -27,7 +27,7 @@
       <environment insert="" mode="prepend" name="PYTHONPATH"/>
     </requires>
 
-    <requires interface="https://apps.0install.net/devel/git.xml">
+    <requires  importance="recommended" interface="https://apps.0install.net/devel/git.xml">
       <executable-in-path name="git"/>
     </requires>
 
