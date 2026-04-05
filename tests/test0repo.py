@@ -3,7 +3,7 @@ import tempfile
 import shutil
 import subprocess
 import os, sys
-import imp
+import importlib
 import builtins
 from io import StringIO
 
@@ -123,7 +123,7 @@ class Test0Repo(unittest.TestCase):
 		if 'ZEROINSTALL_PORTABLE_BASE' in os.environ:
 			del os.environ['ZEROINSTALL_PORTABLE_BASE']
 
-		imp.reload(basedir)
+		importlib.reload(basedir)
 
 		responses.clear()
 
