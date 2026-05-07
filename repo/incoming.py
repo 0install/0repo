@@ -3,7 +3,7 @@
 
 
 
-import os, subprocess
+import os, re, subprocess
 from io import BytesIO
 from os.path import join, dirname, basename, relpath
 from xml.dom import minidom, Node
@@ -210,7 +210,8 @@ def process_incoming_dir(config):
 	archive_paths = set()
 
 	if new_xml:
-		for xml in sorted(new_xml):
+		# Natural sort
+		for xml in sorted(new_xml, key=lambda f: [int(p) if p.isdigit() else p for p in re.split(r'(\d+)', f)]):
 			print("Processing", xml)
 			msg, paths = process(config, os.path.join('incoming', xml), delete_on_success = True)
 			if msg:
