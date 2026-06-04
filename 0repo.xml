@@ -13,7 +13,7 @@
 
   <feed-for interface="https://apps.0install.net/0install/0repo.xml"/>
 
-  <group license="OSI Approved :: GNU Lesser General Public License (LGPL)">
+  <group license="LGPL-2.1-or-later">
     <command name="run" path="0repo.py">
       <runner interface="https://apps.0install.net/python/python.xml" version="3.6.."/>
     </command>
