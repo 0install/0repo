@@ -19,10 +19,14 @@ jobs:
       # Build
       - name: Inject version number
         run: sed -i "s/^version = '.*'$/version = '${{steps.gitversion.outputs.legacySemVer}}'/" 0repo.py
-      - name: 0template
-        run: ./0install.sh run https://apps.0install.net/0install/0template.xml 0repo.xml.template version=${{steps.gitversion.outputs.legacySemVer}}
+      - uses: 0install/github-actions/0template@v1
+        id: feed
+        with:
+          template: 0repo.xml.template
+          version: ${{steps.gitversion.outputs.legacySemVer}}
+      # Runs the generated feed locally, so its archive href must stay relative
       - name: 0test
-        run: ./0install.sh run https://apps.0install.net/0install/0test.xml 0repo-${{steps.gitversion.outputs.legacySemVer}}.xml
+        run: 0install run https://apps.0install.net/0install/0test.xml ${{steps.feed.outputs.feed}}
 
       # Release
       - name: Get tag message
@@ -44,15 +48,14 @@ jobs:
             ## Changes
             ${{steps.tag_message.outputs.message}}
           files: |
-            0repo-${{steps.gitversion.outputs.legacySemVer}}.xml
-            0repo-${{steps.gitversion.outputs.legacySemVer}}.tar.bz2
+            ${{steps.feed.outputs.feed}}
+            ${{steps.feed.outputs.archive}}
 
       # Publish
-      - name: Publish feed
+      - uses: 0install/github-actions/0repo-submit@v1
         if: github.ref_type == 'tag'
-        env:
-          GH_TOKEN: ${{secrets.PERSONAL_TOKEN}}
-        run: >
-          gh workflow run --repo=0install/apps Incoming
-          -f feed_url=https://github.com/${{github.repository}}/releases/download/${{github.ref_name}}/0repo-${{steps.gitversion.outputs.legacySemVer}}.xml
-          -f archive_url=https://github.com/${{github.repository}}/releases/download/${{github.ref_name}}/0repo-${{steps.gitversion.outputs.legacySemVer}}.tar.bz2
+        with:
+          repository: 0install/apps
+          feed-url: ${{steps.feed.outputs.feed}}
+          archive-url: ${{steps.feed.outputs.archive}}
+          token: ${{secrets.PERSONAL_TOKEN}}
