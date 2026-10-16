@@ -12,6 +12,7 @@
       <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         <meta http-equiv="Content-Language" content="en" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>Zero Install - Software catalogue</title>
         <link rel="stylesheet" href="@REPOSITORY_BASE_URL@resources/catalog.css" type="text/css" />
         <script src="@REPOSITORY_BASE_URL@resources/list.min.js"></script>
@@ -63,10 +64,10 @@
                     </xsl:for-each>
                   </p>
                   <p class="summary">
-                    <xsl:if test="interface:summary[@lang='en']">
-                      <xsl:value-of select="interface:summary[@lang='en']"/>
+                    <xsl:if test="interface:summary[@xml:lang='en']">
+                      <xsl:value-of select="interface:summary[@xml:lang='en']"/>
                     </xsl:if>
-                    <xsl:if test="not(interface:summary[@lang='en'])">
+                    <xsl:if test="not(interface:summary[@xml:lang='en'])">
                       <xsl:value-of select="interface:summary"/>
                     </xsl:if>
                   </p>
@@ -118,6 +119,11 @@
             valueNames: ['name', 'categories', 'summary', {data: ['cats', 'terminal']}],
             searchColumns: ['name', 'categories', 'summary']
           });
+
+          if (new URLSearchParams(location.search).has('include-terminal')) {
+            var footerBar = document.querySelector('.footerBar');
+            if (footerBar) footerBar.parentNode.removeChild(footerBar);
+          }
 
           var comboCategory = document.querySelector('.category');
           var checkBoxIncludeTerminal = document.querySelector('.includeTerminal');
