@@ -20,6 +20,8 @@ sys.path.insert(0, os.path.abspath('..'))
 
 test_gpghome = join(mydir, 'test-gpghome')
 
+XMLNS_XHTML = 'http://www.w3.org/1999/xhtml'
+
 from repo.cmd import main
 from repo import archives, registry, paths, urltest
 
@@ -148,6 +150,7 @@ class Test0Repo(unittest.TestCase):
 		assert os.path.exists(join('public', 'catalog.xml'))
 		assert os.path.exists(join('public', 'resources/catalog.xsl'))
 		assert os.path.exists(join('public', 'resources/catalog.css'))
+		assert os.path.exists(join('public', 'resources/xslt-polyfill.min.js'))
 		assert os.path.exists(join('public', 'keys', '6D66BDF4F467A18D.gpg'))
 
 		# Create a new feed (external archive)
@@ -165,7 +168,10 @@ class Test0Repo(unittest.TestCase):
 
 		with open(join('public', 'catalog.xml'), 'rb') as stream:
 			catalog = qdom.parse(stream)
-		feeds = catalog.childNodes
+		script = catalog.childNodes[0]
+		self.assertEqual((XMLNS_XHTML, 'script'), (script.uri, script.name))
+		self.assertEqual('resources/xslt-polyfill.min.js', script.attrs['src'])
+		feeds = [x for x in catalog.childNodes if x.uri == XMLNS_IFACE]
 		self.assertEqual(1, len(feeds))
 		feed, = feeds
 		self.assertEqual(XMLNS_IFACE, feed.uri)
@@ -217,7 +223,11 @@ class Test0Repo(unittest.TestCase):
 
 			stream.seek(0)
 
-			feed = model.ZeroInstallFeed(qdom.parse(stream))
+			feed_root = qdom.parse(stream)
+			feed = model.ZeroInstallFeed(feed_root)
+		script = feed_root.childNodes[0]
+		self.assertEqual((XMLNS_XHTML, 'script'), (script.uri, script.name))
+		self.assertEqual('../resources/xslt-polyfill.min.js', script.attrs['src'])
 		impl2 = feed.implementations['version2']
 		self.assertEqual(stored_archive.url, impl2.download_sources[0].url)
 

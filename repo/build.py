@@ -5,7 +5,7 @@
 
 import os, subprocess, sys
 from os.path import join, dirname, relpath, basename, abspath
-from xml.dom import minidom, Node
+from xml.dom import minidom, Node, XMLNS_NAMESPACE
 import base64
 from collections import namedtuple
 
@@ -20,6 +20,22 @@ PublicFeed = namedtuple("PublicFeed", ["source_path", "public_rel_path", "doc", 
 feed_header = """<?xml version="1.0" ?>
 <?xml-stylesheet type='text/xsl' href='%s/feed.xsl'?>
 """
+
+XMLNS_XHTML = "http://www.w3.org/1999/xhtml"
+
+def add_xslt_polyfill(config, doc, path_to_resources):
+	"""Inserts a <script> element that renders the stylesheet in browsers without native XSLT support."""
+	if not getattr(config, 'XSLT_POLYFILL', True):
+		return
+	root = doc.documentElement
+	script = doc.createElementNS(XMLNS_XHTML, 'script')
+	script.setAttributeNS(XMLNS_NAMESPACE, 'xmlns', XMLNS_XHTML)
+	script.setAttribute('src', path_to_resources + '/xslt-polyfill.min.js')
+	first = root.firstChild
+	if first is not None and first.nodeType == Node.TEXT_NODE and not first.data.strip():
+		# Keep the existing indentation
+		root.insertBefore(doc.createTextNode(first.data), first)
+	root.insertBefore(script, first)
 
 def sign_xml(config, source_xml):
 	if not config.GPG_SIGNING_KEY:
@@ -143,6 +159,9 @@ def export_key(dir, signing_key):
 		print("Exported public key as '%s'" % key_file)
 	return key_file
 
+def path_to_resources(target_path):
+	return relpath(join('public', 'resources'), dirname(target_path)).replace(os.sep, '/')
+
 def build_public_feeds(config):
 	feeds = []
 	for dirpath, dirnames, filenames in os.walk('feeds'):
@@ -152,6 +171,7 @@ def build_public_feeds(config):
 				public_rel_path = paths.get_public_rel_path(config, relpath(source_path, 'feeds'))
 				target_path = join("public", public_rel_path)
 				new_doc = generate_public_xml(config, source_path)
+				add_xslt_polyfill(config, new_doc, path_to_resources(target_path))
 				changed = True
 				if os.path.exists(target_path):
 					with open(target_path, 'rb') as stream:
@@ -188,8 +208,7 @@ def build_public_feeds(config):
 
 		if not public_feed.changed: continue
 
-		path_to_resources = relpath(join('public', 'resources'), dirname(target_path)).replace(os.sep, '/')
-		new_xml = (feed_header % path_to_resources).encode('utf-8') + public_feed.doc.documentElement.toxml('utf-8') + b'\n'
+		new_xml = (feed_header % path_to_resources(target_path)).encode('utf-8') + public_feed.doc.documentElement.toxml('utf-8') + b'\n'
 
 		signed_xml = sign_xml(config, new_xml)
 

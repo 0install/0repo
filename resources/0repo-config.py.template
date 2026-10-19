@@ -140,6 +140,15 @@ def upload_archives(archives):
 CHECK_DIGESTS = True
 
 
+#### Browser rendering ####
+
+# Generated feeds and catalogs reference XSLT stylesheets so they display nicely in web browsers.
+# Since browsers are dropping native XSLT support, 0repo also adds a <script> element pointing to
+# resources/xslt-polyfill.min.js, which performs the transformation in JavaScript instead.
+# Set this to False to leave out the <script> element and the polyfill.
+XSLT_POLYFILL = True
+
+
 #### Custom checks and rules ####
 
 # When adding a new implementation to the repository, this function is called to check that

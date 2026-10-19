@@ -5,6 +5,7 @@
 
 import time
 import os
+import shutil
 import subprocess
 from os.path import join, abspath
 
@@ -45,6 +46,12 @@ def do_update(config, messages = None):
 			data = data.replace('@REPOSITORY_BASE_URL@', config.REPOSITORY_BASE_URL)
 			with open(target, 'wt') as stream:
 				stream.write(data)
+	if getattr(config, 'XSLT_POLYFILL', True):
+		# Copied verbatim, since it is large and contains non-ASCII characters
+		target = join('resources', 'xslt-polyfill.min.js')
+		files.append(target)
+		if not os.path.exists(target):
+			shutil.copyfile(join(config.default_resources, 'xslt-polyfill.min.js'), target)
 
 	if not messages:
 		messages = ['0repo update']
